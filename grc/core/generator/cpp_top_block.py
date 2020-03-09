@@ -5,6 +5,7 @@ import os
 import tempfile
 import textwrap
 import re
+import ast
 
 from mako.template import Template
 
@@ -29,29 +30,31 @@ class CppTopBlockGenerator(TopBlockGenerator):
 
     def __init__(self, flow_graph, file_path):
         """
-        Initialize the top block generator object.
+        Initialize the C++ top block generator object.
 
         Args:
             flow_graph: the flow graph object
-            file_path: the path to write the file to
+            file_path: the path where we want to create
+                a new directory with C++ files
         """
 
         self._flow_graph = FlowGraphProxy(flow_graph)
         self._generate_options = self._flow_graph.get_option('generate_options')
 
         self._mode = TOP_BLOCK_FILE_MODE
-        dirname = os.path.dirname(file_path)
         # Handle the case where the directory is read-only
         # In this case, use the system's temp directory
-        if not os.access(dirname, os.W_OK):
-            dirname = tempfile.gettempdir()
+        if not os.access(file_path, os.W_OK):
+            file_path = tempfile.gettempdir()
 
+        # When generating C++ code, we create a new directory
+        # (file_path) and generate the files inside that directory
         filename = self._flow_graph.get_option('id')
-        self.file_path = os.path.join(dirname, filename)
-        self._dirname = dirname
+        self.file_path = os.path.join(file_path, filename)
+        self._dirname = file_path
 
     def write(self):
-        """generate output and write it to files"""
+        """create directory, generate output and write it to files"""
         self._warnings()
 
         fg = self._flow_graph
@@ -153,6 +156,15 @@ class CppTopBlockGenerator(TopBlockGenerator):
         filename = 'CMakeLists.txt'
         file_path = os.path.join(self.file_path, filename)
 
+        cmake_tuples = []
+        cmake_opt = self._flow_graph.get_option("cmake_opt")
+        cmake_opt = " " + cmake_opt # To make sure we get rid of the "-D"s when splitting
+
+        for opt_string in cmake_opt.split(" -D"):
+            opt_string = opt_string.strip()
+            if opt_string:
+                cmake_tuples.append(tuple(opt_string.split("=")))
+
         output = []
 
         flow_graph_code = cmake_template.render(
@@ -162,6 +174,7 @@ class CppTopBlockGenerator(TopBlockGenerator):
             callbacks=self._callbacks(),
             connections=self._connections(),
             links=self._links(),
+            cmake_tuples=cmake_tuples,
             **self.namespace
         )
         # strip trailing white-space
@@ -220,7 +233,7 @@ class CppTopBlockGenerator(TopBlockGenerator):
 
         blocks = [
             b for b in fg.blocks
-            if b.enabled and not (b.get_bypassed() or b.is_import or b in parameters or b.key == 'options')
+            if b.enabled and not (b.get_bypassed() or b.is_import or b in parameters or b.key == 'options' or b.is_virtual_source() or b.is_virtual_sink())
         ]
 
         blocks = expr_utils.sort_objects(blocks, operator.attrgetter('name'), _get_block_sort_text)
@@ -230,7 +243,7 @@ class CppTopBlockGenerator(TopBlockGenerator):
             make = block.cpp_templates.render('make')
             declarations = block.cpp_templates.render('declarations')
             if translations:
-                translations = yaml.load(translations)
+                translations = yaml.safe_load(translations)
             else:
                 translations = {}
             translations.update(
@@ -251,16 +264,60 @@ class CppTopBlockGenerator(TopBlockGenerator):
         fg = self._flow_graph
         variables = fg.get_cpp_variables()
 
+        type_translation = {'complex': 'gr_complex', 'real': 'double', 'float': 'float', 'int': 'int', 'complex_vector': 'std::vector<gr_complex>', 'real_vector': 'std::vector<double>', 'float_vector': 'std::vector<float>', 'int_vector': 'std::vector<int>', 'string': 'std::string', 'bool': 'bool'}
+        # If the type is explcitly specified, translate to the corresponding C++ type
+        for var in list(variables):
+            if var.params['value'].dtype != 'raw':
+                var.vtype = type_translation[var.params['value'].dtype]
+                variables.remove(var)
+
+        # If the type is 'raw', we'll need to evaluate the variable to infer the type.
+        # Create an executable fragment of code containing all 'raw' variables in 
+        # order to infer the lvalue types.
+        #
+        # Note that this differs from using ast.literal_eval() as literal_eval evaluates one 
+        # variable at a time. The code fragment below evaluates all varaibles together which 
+        # allows the variables to reference each other (i.e. a = b * c).
+        prog = 'def get_decl_types():\n'
+        prog += '\tvar_types = {}\n'
         for var in variables:
-            var.decide_type()
+            prog += '\t' + str(var.params['id'].value) + '=' + str(var.params['value'].value) + '\n'
+        prog += '\tvar_types = {}\n';
+        for var in variables:
+            prog += '\tvar_types[\'' +  str(var.params['id'].value) + '\'] = type(' + str(var.params['id'].value) + ')\n'
+        prog += '\treturn var_types'
+
+        # Execute the code fragment in a separate namespace and retrieve the lvalue types
+        var_types = {}
+        namespace = {}
+        try:
+          exec(prog, namespace)
+          var_types = namespace['get_decl_types']()
+        except Exception as excp:
+          print('Failed to get parameter lvalue types: %s' %(excp))
+
+        # Format the rvalue of each variable expression
+        for var in variables:
+            var.format_expr(var_types[str(var.params['id'].value)])
 
     def _parameter_types(self):
         fg = self._flow_graph
         parameters = fg.get_parameters()
 
         for param in parameters:
-            type_translation = {'eng_float' : 'double', 'intx' : 'int', 'std' : 'std::string'};
+            type_translation = {'eng_float' : 'double', 'intx' : 'int', 'str' : 'std::string', 'complex': 'gr_complex'};
             param.vtype = type_translation[param.params['type'].value]
+
+            if param.vtype == 'gr_complex':
+                evaluated = ast.literal_eval(param.params['value'].value.strip())
+                cpp_cmplx = '{' + str(evaluated.real) + ', ' + str(evaluated.imag) + '}'
+
+                # Update the 'var_make' entry in the cpp_templates dictionary
+                d = param.cpp_templates
+                cpp_expr = d['var_make'].replace('${value}', cpp_cmplx) 
+                d.update({'var_make':cpp_expr})
+                param.cpp_templates = d
+
 
     def _callbacks(self):
         fg = self._flow_graph
@@ -274,7 +331,8 @@ class CppTopBlockGenerator(TopBlockGenerator):
 
         callbacks_all = []
         for block in fg.iter_enabled_blocks():
-            callbacks_all.extend(expr_utils.expr_replace(cb, replace_dict) for cb in block.get_cpp_callbacks())
+            if not (block.is_virtual_sink() or block.is_virtual_source()):
+            	callbacks_all.extend(expr_utils.expr_replace(cb, replace_dict) for cb in block.get_cpp_callbacks())
 
         # Map var id to callbacks
         def uses_var_id(callback):
@@ -301,7 +359,13 @@ class CppTopBlockGenerator(TopBlockGenerator):
                 key = port.key
 
             if not key.isdigit():
-                key = re.findall(r'\d+', key)[0]
+                # TODO What use case is this supporting?
+                toks = re.findall(r'\d+', key)
+                if len(toks) > 0:
+                    key = toks[0]
+                else:
+                    # Assume key is a string
+                    key = '"' + key + '"'
 
             return '{block}, {key}'.format(block=block, key=key)
 
@@ -309,12 +373,15 @@ class CppTopBlockGenerator(TopBlockGenerator):
 
         # Get the virtual blocks and resolve their connections
         connection_factory = fg.parent_platform.Connection
-        virtual = [c for c in connections if isinstance(c.source_block, blocks.VirtualSource)]
-        for connection in virtual:
+        virtual_source_connections = [c for c in connections if isinstance(c.source_block, blocks.VirtualSource)]
+        for connection in virtual_source_connections:
             sink = connection.sink_port
             for source in connection.source_port.resolve_virtual_source():
                 resolved = connection_factory(fg.orignal_flowgraph, source, sink)
                 connections.append(resolved)
+
+        virtual_connections = [c for c in connections if (isinstance(c.source_block, blocks.VirtualSource) or isinstance(c.sink_block, blocks.VirtualSink))]
+        for connection in virtual_connections:
             # Remove the virtual connection
             connections.remove(connection)
 
@@ -353,9 +420,30 @@ class CppTopBlockGenerator(TopBlockGenerator):
         rendered = []
         for con in sorted(connections, key=by_domain_and_blocks):
             template = templates[con.type]
-            code = template.render(make_port_sig=make_port_sig, source=con.source_port, sink=con.sink_port)
-            if not self._generate_options.startswith('hb'):
-                code = 'this->tb->' + code
-            rendered.append(code)
+
+            if con.source_port.dtype != 'bus':
+                code = template.render(make_port_sig=make_port_sig, source=con.source_port, sink=con.sink_port)
+                if not self._generate_options.startswith('hb'):
+                    code = 'this->tb->' + code
+                rendered.append(code)
+            else:
+                # Bus ports need to iterate over the underlying connections and then render
+                # the code for each subconnection
+                porta = con.source_port
+                portb = con.sink_port
+                fg = self._flow_graph
+                             
+                if porta.dtype == 'bus' and portb.dtype == 'bus':
+                    # which bus port is this relative to the bus structure
+                    if len(porta.bus_structure) == len(portb.bus_structure):
+                        for port_num in porta.bus_structure:
+                            hidden_porta = porta.parent.sources[port_num]
+                            hidden_portb = portb.parent.sinks[port_num]
+                            connection = fg.parent_platform.Connection(
+                                parent=self, source=hidden_porta, sink=hidden_portb)
+                            code = template.render(make_port_sig=make_port_sig, source=hidden_porta, sink=hidden_portb)
+                            if not self._generate_options.startswith('hb'):
+                                code = 'this->tb->' + code
+                            rendered.append(code)
 
         return rendered

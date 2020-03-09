@@ -4,20 +4,8 @@
  *
  * This file is part of GNU Radio
  *
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
  */
 
 // Defined during configure; avoids trying to locate
@@ -25,6 +13,8 @@
 #ifdef GR_HAVE_UHD
 
 #define GR_UHD_API
+
+#include <uhd/version.hpp>
 
 //suppress 319. No access specifier given for base class name (ignored).
 #pragma SWIG nowarn=319
@@ -45,6 +35,14 @@
 %ignore gr::uhd::usrp_sink::get_device;
 %ignore gr::uhd::usrp_source::get_device;
 
+#ifdef GR_HAVE_RFNOC
+%ignore gr::uhd::rfnoc_graph::create_rx_streamer;
+%ignore gr::uhd::rfnoc_graph::create_tx_streamer;
+%ignore gr::uhd::rfnoc_graph::get_block_ref;
+%ignore gr::uhd::rfnoc_block::get_block_ref;
+%ignore gr::uhd::rfnoc_block::make_block_ref;
+#endif
+
 ////////////////////////////////////////////////////////////////////////
 // block headers
 ////////////////////////////////////////////////////////////////////////
@@ -53,6 +51,20 @@
 #include <gnuradio/uhd/usrp_sink.h>
 #include <gnuradio/uhd/amsg_source.h>
 %}
+
+#ifdef GR_HAVE_RFNOC
+%{
+#include <gnuradio/uhd/rfnoc_block.h>
+#include <gnuradio/uhd/rfnoc_graph.h>
+#include <gnuradio/uhd/rfnoc_tx_streamer.h>
+#include <gnuradio/uhd/rfnoc_rx_streamer.h>
+#include <gnuradio/uhd/rfnoc_block_generic.h>
+#include <gnuradio/uhd/rfnoc_ddc.h>
+#include <gnuradio/uhd/rfnoc_duc.h>
+#include <gnuradio/uhd/rfnoc_rx_radio.h>
+#include <gnuradio/uhd/rfnoc_tx_radio.h>
+%}
+#endif
 
 %include "gnuradio/uhd/usrp_block.h"
 
@@ -109,8 +121,6 @@
 
 %include <uhd/types/stream_cmd.hpp>
 
-%include <uhd/types/clock_config.hpp>
-
 %include <uhd/types/metadata.hpp>
 
 %template(device_addr_vector_t) std::vector<uhd::device_addr_t>;
@@ -119,14 +129,77 @@
 
 %include <uhd/stream.hpp>
 
+%include <uhd/types/filters.hpp>
+
+%include stdint.i
+
+// Used for lists of filter taps
+%template(uhd_vector_int16_t) std::vector<int16_t>;
+
 ////////////////////////////////////////////////////////////////////////
 // swig dboard_iface for python access
 ////////////////////////////////////////////////////////////////////////
-%include stdint.i
 %include <uhd/types/serial.hpp>
 %include <uhd/usrp/dboard_iface.hpp>
 
+#if UHD_VERSION < 4000000 
+
+%template(filter_info_base_sptr) boost::shared_ptr<uhd::filter_info_base>;
+%template(analog_filter_base_stpr) boost::shared_ptr<uhd::analog_filter_base>;
+%template(analog_filter_lp_stpr) boost::shared_ptr<uhd::analog_filter_lp>;
+%template(digital_filter_base_int16_t_sptr) boost::shared_ptr<uhd::digital_filter_base<int16_t>>;
+%template(digital_filter_fir_int16_t_sptr) boost::shared_ptr<uhd::digital_filter_fir<int16_t>>;
+
+%extend uhd::filter_info_base{
+    boost::shared_ptr<uhd::analog_filter_base> to_analog_info_base(boost::shared_ptr<uhd::filter_info_base> ptr) {
+       return boost::dynamic_pointer_cast<uhd::analog_filter_base>(ptr);
+    }
+
+    boost::shared_ptr<uhd::analog_filter_lp> to_analog_filter_lp(boost::shared_ptr<uhd::filter_info_base> ptr) {
+       return boost::dynamic_pointer_cast<uhd::analog_filter_lp>(ptr);
+    }
+
+    boost::shared_ptr<uhd::digital_filter_base<int16_t>> to_digital_filter_base_int16(boost::shared_ptr<uhd::filter_info_base> ptr) {
+       return boost::dynamic_pointer_cast<uhd::digital_filter_base<int16_t>>(ptr);
+    }
+
+    boost::shared_ptr<uhd::digital_filter_fir<int16_t>> to_digital_filter_fir_int16(boost::shared_ptr<uhd::filter_info_base> ptr) {
+       return boost::dynamic_pointer_cast<uhd::digital_filter_fir<int16_t>>(ptr);
+    }
+}
+
 %template(dboard_iface_sptr) boost::shared_ptr<uhd::usrp::dboard_iface>;
+
+#else
+
+%template(filter_info_base_sptr) std::shared_ptr<uhd::filter_info_base>;
+%template(analog_filter_base_stpr) std::shared_ptr<uhd::analog_filter_base>;
+%template(analog_filter_lp_stpr) std::shared_ptr<uhd::analog_filter_lp>;
+%template(digital_filter_base_int16_t_sptr) std::shared_ptr<uhd::digital_filter_base<int16_t>>;
+%template(digital_filter_fir_int16_t_sptr) std::shared_ptr<uhd::digital_filter_fir<int16_t>>;
+
+%extend uhd::filter_info_base{
+    std::shared_ptr<uhd::analog_filter_base> to_analog_info_base(std::shared_ptr<uhd::filter_info_base> ptr) {
+       return std::dynamic_pointer_cast<uhd::analog_filter_base>(ptr);
+    }
+
+    std::shared_ptr<uhd::analog_filter_lp> to_analog_filter_lp(std::shared_ptr<uhd::filter_info_base> ptr) {
+       return std::dynamic_pointer_cast<uhd::analog_filter_lp>(ptr);
+    }
+
+    std::shared_ptr<uhd::digital_filter_base<int16_t>> to_digital_filter_base_int16(std::shared_ptr<uhd::filter_info_base> ptr) {
+       return std::dynamic_pointer_cast<uhd::digital_filter_base<int16_t>>(ptr);
+    }
+
+    std::shared_ptr<uhd::digital_filter_fir<int16_t>> to_digital_filter_fir_int16(std::shared_ptr<uhd::filter_info_base> ptr) {
+       return std::dynamic_pointer_cast<uhd::digital_filter_fir<int16_t>>(ptr);
+    }
+
+%template(dboard_iface_sptr) std::shared_ptr<uhd::usrp::dboard_iface>;
+
+}
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 // block magic
@@ -135,20 +208,47 @@
 %include <gnuradio/uhd/usrp_sink.h>
 %include <gnuradio/uhd/amsg_source.h>
 
+#ifdef GR_HAVE_RFNOC
+%include <gnuradio/uhd/rfnoc_graph.h>
+%include <gnuradio/uhd/rfnoc_block.h>
+%include <gnuradio/uhd/rfnoc_tx_streamer.h>
+%include <gnuradio/uhd/rfnoc_rx_streamer.h>
+%include <gnuradio/uhd/rfnoc_block_generic.h>
+%include <gnuradio/uhd/rfnoc_ddc.h>
+%include <gnuradio/uhd/rfnoc_duc.h>
+%include <gnuradio/uhd/rfnoc_rx_radio.h>
+%include <gnuradio/uhd/rfnoc_tx_radio.h>
+#endif
+
 GR_SWIG_BLOCK_MAGIC2(uhd, usrp_source)
 GR_SWIG_BLOCK_MAGIC2(uhd, usrp_sink)
 GR_SWIG_BLOCK_MAGIC2(uhd, amsg_source)
+
+#ifdef GR_HAVE_RFNOC
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_graph)
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_tx_streamer);
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_rx_streamer);
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_block_generic);
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_ddc);
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_duc);
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_rx_radio);
+GR_SWIG_BLOCK_MAGIC2(uhd, rfnoc_tx_radio);
+#endif
+
 
 ////////////////////////////////////////////////////////////////////////
 // device discovery (no need to %include device.hpp)
 ////////////////////////////////////////////////////////////////////////
 %{
-static uhd::device_addrs_t find_devices_raw(const uhd::device_addr_t &dev_addr = uhd::device_addr_t()){
+static uhd::device_addrs_t find_devices_raw(
+    const uhd::device_addr_t &dev_addr = uhd::device_addr_t())
+{
     return uhd::device::find(dev_addr);
 }
 %}
 
-static uhd::device_addrs_t find_devices_raw(const uhd::device_addr_t &dev_addr = uhd::device_addr_t());
+static uhd::device_addrs_t find_devices_raw(
+    const uhd::device_addr_t &dev_addr = uhd::device_addr_t());
 
 ////////////////////////////////////////////////////////////////////////
 // helpful constants

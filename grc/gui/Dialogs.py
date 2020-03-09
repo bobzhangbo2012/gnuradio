@@ -1,19 +1,8 @@
 # Copyright 2008, 2009, 2016 Free Software Foundation, Inc.
 # This file is part of GNU Radio
 #
-# GNU Radio Companion is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# GNU Radio Companion is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 
 
 from __future__ import absolute_import
 
@@ -273,7 +262,7 @@ def show_about(parent, config):
     try:
         ad.set_logo(Gtk.IconTheme().load_icon('gnuradio-grc', 64, 0))
     except GLib.Error:
-        log.debug("Failed to set window logo")
+        Messages.send("Failed to set window logo\n")
 
     #ad.set_comments("")
     ad.set_copyright(config.license.splitlines()[0])
@@ -322,7 +311,7 @@ def show_types(parent):
 def show_missing_xterm(parent, xterm):
     markup = textwrap.dedent("""\
         The xterm executable {0!r} is missing.
-        You can change this setting in your gnurado.conf, in section [grc], 'xterm_executable'.
+        You can change this setting in your gnuradio.conf, in section [grc], 'xterm_executable'.
         \n\
         (This message is shown only once)\
     """).format(xterm)

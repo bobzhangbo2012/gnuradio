@@ -39,12 +39,15 @@ parameters:
 -   id: low_cutoff_freq
     label: Low Cutoff Freq
     dtype: real
+    default: '0'
 -   id: high_cutoff_freq
     label: High Cutoff Freq
     dtype: real
+    default: '1'
 -   id: width
     label: Transition Width
     dtype: real
+    default: '1'
 -   id: win
     label: Window
     dtype: int
@@ -56,6 +59,10 @@ parameters:
     label: Beta
     dtype: real
     default: '6.76'
+
+asserts:
+-   ${ low_cutoff_freq <= high_cutoff_freq }
+-   ${ width > 0 }
 
 inputs:
 -   domain: stream
@@ -108,6 +115,6 @@ documentation: |-
 
     Sample rate, cutoff frequency, and transition width are in Hertz.
 
-    The beta paramater only applies to the Kaiser window.
+    The beta parameter only applies to the Kaiser window.
 
 file_format: 1

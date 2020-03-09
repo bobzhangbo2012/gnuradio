@@ -2,19 +2,8 @@
 Copyright 2007, 2008, 2009 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import, division
@@ -128,16 +117,14 @@ class Block(CoreBlock, Drawable):
             self._area = (0, 0, self.height, self.width)
         self.bounds_from_area(self._area)
 
-        # bussified = self.current_bus_structure['source'], self.current_bus_structure['sink']
-        bussified = False, False
+        bussified = self.current_bus_structure['source'], self.current_bus_structure['sink']
         for ports, has_busses in zip((self.active_sources, self.active_sinks), bussified):
             if not ports:
                 continue
             port_separation = PORT_SEPARATION if not has_busses else ports[0].height + PORT_SPACING
             offset = (self.height - (len(ports) - 1) * port_separation - ports[0].height) / 2
             for port in ports:
-                port.create_shapes()
-
+                port.create_shapes()            
                 port.coordinate = {
                     0: (+self.width, offset),
                     90: (offset, -port.width),
@@ -167,11 +154,13 @@ class Block(CoreBlock, Drawable):
             )
         )
         title_width, title_height = title_layout.get_size()
+ 
+        force_show_id = Actions.TOGGLE_SHOW_BLOCK_IDS.get_active()
 
         # update the params layout
         if not self.is_dummy_block:
             markups = [param.format_block_surface_markup()
-                       for param in self.params.values() if param.hide not in ('all', 'part')]
+                for param in self.params.values() if (param.hide not in ('all', 'part') or (param.dtype == 'id' and force_show_id))]
         else:
             markups = ['<span font_desc="{font}"><b>key: </b>{key}</span>'.format(font=PARAM_FONT, key=self.key)]
 
@@ -193,23 +182,20 @@ class Block(CoreBlock, Drawable):
 
         def get_min_height_for_ports(ports):
             min_height = 2 * PORT_BORDER_SEPARATION + len(ports) * PORT_SEPARATION
-            if ports:
-                min_height -= ports[-1].height
+            # If any of the ports are bus ports - make the min height larger
+            if any([p.dtype == 'bus' for p in ports]):
+                min_height = 2 * PORT_BORDER_SEPARATION + sum(
+                    port.height + PORT_SPACING for port in ports if port.dtype == 'bus'
+                    ) - PORT_SPACING
+            
+            else:
+                if ports:
+                    min_height -= ports[-1].height
             return min_height
 
         height = max(height,
                      get_min_height_for_ports(self.active_sinks),
                      get_min_height_for_ports(self.active_sources))
-
-        # def get_min_height_for_bus_ports(ports):
-        #     return 2 * PORT_BORDER_SEPARATION + sum(
-        #         port.height + PORT_SPACING for port in ports if port.dtype == 'bus'
-        #     ) - PORT_SPACING
-        #
-        # if self.current_bus_structure['sink']:
-        #     height = max(height, get_min_height_for_bus_ports(self.active_sinks))
-        # if self.current_bus_structure['source']:
-        #     height = max(height, get_min_height_for_bus_ports(self.active_sources))
 
         self.width, self.height = width, height = Utils.align_to_grid((width, height))
 
@@ -331,6 +317,17 @@ class Block(CoreBlock, Drawable):
                 (x, y, x, y), (min, min, max, max), extent, port.get_extents()
             ))
         return tuple(extent)
+
+    def get_extents_comment(self):
+        x, y = self.coordinate
+        if not self._comment_layout:
+            return x, y, x, y
+        if self.is_horizontal():
+            y += self.height + BLOCK_LABEL_PADDING
+        else:
+            x += self.height + BLOCK_LABEL_PADDING
+        w, h = self._comment_layout.get_pixel_size()
+        return x, y, x + w, y + h
 
     ##############################################
     # Controller Modify

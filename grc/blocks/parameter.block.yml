@@ -1,6 +1,6 @@
 id: parameter
 label: Parameter
-flags: [ python, cpp ]
+flags: [ show_id, python, cpp ]
 
 parameters:
 -   id: label
@@ -39,7 +39,7 @@ templates:
     make: ${value}
 
 cpp_templates:
-    var_make: ${type.type} ${id} = ${id};
+    var_make: ${id} = ${value};
     make: ${value}
 
 documentation: |-

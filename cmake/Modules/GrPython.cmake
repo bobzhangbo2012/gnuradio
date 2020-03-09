@@ -2,20 +2,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 if(DEFINED __INCLUDED_GR_PYTHON_CMAKE)
     return()
@@ -33,18 +21,13 @@ if (PYTHON_EXECUTABLE)
     find_package(PythonInterp ${GR_PYTHON_MIN_VERSION} REQUIRED)
 else (PYTHON_EXECUTABLE)
     message(STATUS "PYTHON_EXECUTABLE not set - using default python3")
-    message(STATUS "Use -DPYTHON_EXECUTABLE=/path/to/python2 to build for python2.")
-    find_package(PythonInterp ${GR_PYTHON3_MIN_VERSION} REQUIRED)
+    find_package(PythonInterp ${GR_PYTHON_MIN_VERSION} REQUIRED)
 endif (PYTHON_EXECUTABLE)
-
-if (${PYTHON_VERSION_MAJOR} VERSION_EQUAL 3)
-    set(PYTHON3 TRUE)
-endif ()
 
 find_package(PythonLibs ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR} EXACT)
 
 if (CMAKE_CROSSCOMPILING)
-    set(QA_PYTHON_EXECUTABLE "/usr/bin/python")
+    set(QA_PYTHON_EXECUTABLE "/usr/bin/python3")
 else (CMAKE_CROSSCOMPILING)
     set(QA_PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE})
 endif(CMAKE_CROSSCOMPILING)
@@ -54,10 +37,20 @@ set(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLE} CACHE FILEPATH "python interpreter")
 set(QA_PYTHON_EXECUTABLE ${QA_PYTHON_EXECUTABLE} CACHE FILEPATH "python interpreter for QA tests")
 
 add_library(Python::Python INTERFACE IMPORTED)
-set_target_properties(Python::Python PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}"
-  INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}"
-  )
+# Need to handle special cases where both debug and release
+# libraries are available (in form of debug;A;optimized;B) in PYTHON_LIBRARIES
+if(PYTHON_LIBRARY_DEBUG AND PYTHON_LIBRARY_RELEASE)
+    set_target_properties(Python::Python PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "$<$<NOT:$<CONFIG:Debug>>:${PYTHON_LIBRARY_RELEASE}>;$<$<CONFIG:Debug>:${PYTHON_LIBRARY_DEBUG}>"
+      )
+else()
+    set_target_properties(Python::Python PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}"
+      )
+endif()
+
 
 ########################################################################
 # Check for the existence of a python module:
@@ -99,16 +92,25 @@ endmacro(GR_PYTHON_CHECK_MODULE)
 ########################################################################
 if(NOT DEFINED GR_PYTHON_DIR)
 execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "
-import os
-import sys
-if os.name == 'posix':
-    print(os.path.join('lib', 'python' + sys.version[:3], 'dist-packages'))
-if os.name == 'nt':
-    print(os.path.join('Lib', 'site-packages'))
+from distutils import sysconfig
+print(sysconfig.get_python_lib(plat_specific=True, prefix=''))
 " OUTPUT_VARIABLE GR_PYTHON_DIR OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 endif()
 file(TO_CMAKE_PATH ${GR_PYTHON_DIR} GR_PYTHON_DIR)
+
+########################################################################
+# Sets the python relative installation directory GR_PYTHON_RELATIVE
+########################################################################
+if(NOT DEFINED GR_PYTHON_RELATIVE)
+execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "
+from distutils import sysconfig as sc
+print(sc.get_python_lib(prefix='', plat_specific=True))
+"
+  OUTPUT_VARIABLE GR_PYTHON_RELATIVE  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+endif()
+
 
 ########################################################################
 # Create an always-built target with a unique name
@@ -118,7 +120,7 @@ function(GR_UNIQUE_TARGET desc)
     file(RELATIVE_PATH reldir ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "import re, hashlib
 unique = hashlib.md5(b'${reldir}${ARGN}').hexdigest()[:5]
-print(re.sub('\\W', '_', '${desc} ${reldir} ' + unique))"
+print(re.sub('\\W', '_', r'${desc} ${reldir} ' + unique))"
     OUTPUT_VARIABLE _target OUTPUT_STRIP_TRAILING_WHITESPACE)
     add_custom_target(${_target} ALL DEPENDS ${ARGN})
 endfunction(GR_UNIQUE_TARGET)
@@ -289,7 +291,7 @@ function(GR_PYTHON_INSTALL)
             add_custom_command(
                 OUTPUT ${pyexefile} DEPENDS ${pyfile}
                 COMMAND ${PYTHON_EXECUTABLE} -c
-                "import re; R=re.compile('^\#!.*$\\n',flags=re.MULTILINE); open('${pyexefile}','w').write('\#!${pyexe_native}\\n'+R.sub('',open('${pyfile}','r').read()))"
+                "import re; R=re.compile('^\#!.*$\\n',flags=re.MULTILINE); open(r'${pyexefile}','w').write(r'\#!${pyexe_native}'+'\\n'+R.sub('',open(r'${pyfile}','r').read()))"
                 COMMENT "Shebangin ${pyfile_name}"
                 VERBATIM
             )

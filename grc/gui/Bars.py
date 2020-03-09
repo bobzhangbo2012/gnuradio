@@ -2,19 +2,8 @@
 Copyright 2007, 2008, 2009, 2015, 2016 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import
@@ -83,7 +72,7 @@ MENU_BAR_LIST = [
     [Actions.TOGGLE_BLOCKS_WINDOW],
     [Actions.TOGGLE_CONSOLE_WINDOW, Actions.TOGGLE_SCROLL_LOCK, Actions.SAVE_CONSOLE, Actions.CLEAR_CONSOLE],
     [Actions.TOGGLE_HIDE_VARIABLES, Actions.TOGGLE_FLOW_GRAPH_VAR_EDITOR, Actions.TOGGLE_FLOW_GRAPH_VAR_EDITOR_SIDEBAR],
-    [Actions.TOGGLE_HIDE_DISABLED_BLOCKS, Actions.TOGGLE_AUTO_HIDE_PORT_LABELS, Actions.TOGGLE_SNAP_TO_GRID, Actions.TOGGLE_SHOW_BLOCK_COMMENTS],
+    [Actions.TOGGLE_HIDE_DISABLED_BLOCKS, Actions.TOGGLE_AUTO_HIDE_PORT_LABELS, Actions.TOGGLE_SNAP_TO_GRID, Actions.TOGGLE_SHOW_BLOCK_COMMENTS, Actions.TOGGLE_SHOW_BLOCK_IDS,],
     [Actions.TOGGLE_SHOW_CODE_PREVIEW_TAB],
     [Actions.ERRORS_WINDOW_DISPLAY, Actions.FIND_BLOCKS],
   ]),

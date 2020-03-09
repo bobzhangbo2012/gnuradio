@@ -1,19 +1,8 @@
 # Copyright 2008-2015 Free Software Foundation, Inc.
 # This file is part of GNU Radio
 #
-# GNU Radio Companion is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# GNU Radio Companion is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 
 
 from __future__ import absolute_import, print_function
 
@@ -49,9 +38,9 @@ class FlowGraph(Element):
             the flow graph object
         """
         Element.__init__(self, parent)
-        self._options_block = self.parent_platform.make_block(self, 'options')
+        self.options_block = self.parent_platform.make_block(self, 'options')
 
-        self.blocks = [self._options_block]
+        self.blocks = [self.options_block]
         self.connections = set()
 
         self._eval_cache = {}
@@ -91,6 +80,47 @@ class FlowGraph(Element):
         """
         parameters = [b for b in self.iter_enabled_blocks() if b.key == 'parameter']
         return parameters
+
+    def get_snippets(self):
+        """
+        Get a set of all code snippets (Python) in this flow graph namespace.
+
+        Returns:
+            a list of code snippets
+        """
+        return [b for b in self.iter_enabled_blocks() if b.key == 'snippet']
+
+    def get_snippets_dict(self, section=None):
+        """
+        Get a dictionary of code snippet information for a particular section.
+
+        Args:
+            section: string specifier of section of snippets to return, section=None returns all
+
+        Returns:
+            a list of code snippets dicts
+        """
+        snippets = self.get_snippets()
+        if not snippets:
+            return []
+
+        output = []
+        for snip in snippets:
+            d ={}
+            sect = snip.params['section'].value
+            d['section'] = sect
+            d['priority'] = snip.params['priority'].value
+            d['lines'] = snip.params['code'].value.splitlines()
+            d['def'] = 'def snipfcn_{}(self):'.format(snip.name)
+            d['call'] = 'snipfcn_{}(tb)'.format(snip.name)
+            if not section or sect == section:
+                output.append(d)
+
+        # Sort by descending priority 
+        if section:
+            output = sorted(output, key=lambda x: x['priority'], reverse=True)
+
+        return output
 
     def get_monitors(self):
         """
@@ -149,7 +179,7 @@ class FlowGraph(Element):
         Returns:
             the value held by that param
         """
-        return self._options_block.params[key].get_evaluated()
+        return self.options_block.params[key].get_evaluated()
 
     def get_run_command(self, file_path, split=False):
         run_command = self.get_option('run_command')
@@ -223,8 +253,12 @@ class FlowGraph(Element):
         # Load variables
         for variable_block in self.get_variables():
             try:
+                variable_block.rewrite()
                 value = eval(variable_block.value, namespace, variable_block.namespace)
                 namespace[variable_block.name] = value
+                self.namespace.update(namespace) # rewrite on subsequent blocks depends on an updated self.namespace 
+            except TypeError: #Type Errors may happen, but that desn't matter as they are displayed in the gui
+                pass
             except Exception:
                 log.exception('Failed to evaluate variable block {0}'.format(variable_block.name), exc_info=True)
                 pass
@@ -261,7 +295,7 @@ class FlowGraph(Element):
             the new block or None if not found
         """
         if block_id == 'options':
-            return self._options_block
+            return self.options_block
         try:
             block = self.parent_platform.make_block(self, block_id, **kwargs)
             self.blocks.append(block)
@@ -284,6 +318,7 @@ class FlowGraph(Element):
         connection = self.parent_platform.Connection(
             parent=self, source=porta, sink=portb)
         self.connections.add(connection)
+            
         return connection
 
     def disconnect(self, *ports):
@@ -299,7 +334,7 @@ class FlowGraph(Element):
         If the element is a block, remove its connections.
         If the element is a connection, just remove the connection.
         """
-        if element is self._options_block:
+        if element is self.options_block:
             return
 
         if element.is_port:
@@ -325,12 +360,12 @@ class FlowGraph(Element):
             a nested data odict
         """
         def block_order(b):
-            return not b.key.startswith('variable'), b.name  # todo: vars still first ?!?
+            return not b.is_variable, b.name  # todo: vars still first ?!?
 
         data = collections.OrderedDict()
-        data['options'] = self._options_block.export_data()
+        data['options'] = self.options_block.export_data()
         data['blocks'] = [b.export_data() for b in sorted(self.blocks, key=block_order)
-                          if b is not self._options_block]
+                          if b is not self.options_block]
         data['connections'] = sorted(c.export_data() for c in self.connections)
         data['metadata'] = {'file_format': FLOW_GRAPH_FILE_FORMAT_VERSION}
         return data
@@ -338,7 +373,7 @@ class FlowGraph(Element):
     def _build_depending_hier_block(self, block_id):
         # we're before the initial fg update(), so no evaluated values!
         # --> use raw value instead
-        path_param = self._options_block.params['hier_block_src_path']
+        path_param = self.options_block.params['hier_block_src_path']
         file_path = self.parent_platform.find_file_in_paths(
             filename=block_id + '.grc',
             paths=path_param.get_value(),
@@ -364,8 +399,8 @@ class FlowGraph(Element):
         file_format = data['metadata']['file_format']
 
         # build the blocks
-        self._options_block.import_data(name='', **data.get('options', {}))
-        self.blocks.append(self._options_block)
+        self.options_block.import_data(name='', **data.get('options', {}))
+        self.blocks.append(self.options_block)
 
         for block_data in data.get('blocks', []):
             block_id = block_data['id']
@@ -377,7 +412,7 @@ class FlowGraph(Element):
 
             block.import_data(**block_data)
 
-        self.rewrite()  # evaluate stuff like nports before adding connections
+        self.rewrite() 
 
         # build the connections
         def verify_and_get_port(key, block, dir):
@@ -425,7 +460,7 @@ class FlowGraph(Element):
                 block.rewrite()      # Make ports visible
                 # Flowgraph errors depending on disabled blocks are not displayed
                 # in the error dialog box
-                # So put a messsage into the Property window of the dummy block
+                # So put a message into the Property window of the dummy block
                 block.add_error_message('Block id "{}" not found.'.format(block.key))
 
         self.rewrite()  # global rewrite

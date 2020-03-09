@@ -1,19 +1,8 @@
 # Copyright 2008-2017 Free Software Foundation, Inc.
 # This file is part of GNU Radio
 #
-# GNU Radio Companion is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# GNU Radio Companion is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 
 
 from __future__ import absolute_import
 
@@ -26,7 +15,7 @@ from .. import Constants
 
 
 # Blacklist certain ids, its not complete, but should help
-ID_BLACKLIST = ['self', 'options', 'gr', 'math', 'firdes'] + dir(builtins)
+ID_BLACKLIST = ['self', 'options', 'gr', 'math', 'firdes', 'default'] + dir(builtins)
 try:
     from gnuradio import gr
     ID_BLACKLIST.extend(attr for attr in dir(gr.top_block()) if not attr.startswith('_'))
@@ -70,10 +59,12 @@ def validate_block_id(param):
 
 @validates('name')
 def validate_name(param):
-    # Name of a function that will be generated literally not as a string
+    # Name of a function or other block that will be generated literally not as a string
     value = param.value
+
+    # Allow blank to pass validation
     # Can python use this as a variable?
-    if not re.match(r'^[a-z|A-Z]\w*$', value):
+    if not re.match(r'^([a-z|A-Z]\w*)?$', value):
         raise ValidateError('ID "{}" must begin with a letter and may contain letters, numbers, '
                             'and underscores.'.format(value))
     return value
@@ -115,3 +106,10 @@ def validate_vector(param):
     if not all(isinstance(item, valid_types) for item in param.get_evaluated()):
         raise ValidateError('Expression {!r} is invalid for type {!r}.'.format(
             param.get_evaluated(), param.dtype))
+
+@validates('gui_hint')
+def validate_gui_hint(param):
+    try:
+        param.parse_gui_hint(param.value)
+    except Exception as e:
+        raise ValidateError(str(e))

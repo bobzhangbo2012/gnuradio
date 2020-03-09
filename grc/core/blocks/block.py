@@ -2,19 +2,8 @@
 Copyright 2008-2015 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import
@@ -77,7 +66,7 @@ class Block(Element):
             (data['id'], param_factory(parent=self, **data))
             for data in self.parameters_data
         )
-        if self.key == 'options' or self.is_variable:
+        if self.key == 'options':
             self.params['id'].hide = 'part'
 
         self.sinks = [port_factory(parent=self, **params) for params in self.inputs_data]
@@ -86,9 +75,28 @@ class Block(Element):
         self.active_sources = []  # on rewrite
         self.active_sinks = []  # on rewrite
 
-        self.states = {'state': True}
-        if 'cpp' in self.flags:
-            self.orig_cpp_templates = self.cpp_templates # The original template, in case we have to edit it when transpiling to C++
+        self.states = {'state': True, 'bus_source': False, 'bus_sink': False, 'bus_structure': None}
+
+        if 'cpp' in self.flags and not (self.is_virtual_source() or self.is_virtual_sink()):
+            self.orig_cpp_templates = self.cpp_templates # The original template, in case we have to edit it when transpiling to C++         
+
+        self.current_bus_structure = {'source': None, 'sink': None}
+
+    def get_bus_structure(self, direction):
+        if direction == 'source':
+            bus_structure = self.bus_structure_source
+        else:
+            bus_structure = self.bus_structure_sink
+
+        if not bus_structure:
+            return None
+
+        try:
+            clean_bus_structure = self.evaluate(bus_structure)
+            return clean_bus_structure
+        except:
+            return None
+
 
     # region Rewrite_and_Validation
     def rewrite(self):
@@ -112,15 +120,83 @@ class Block(Element):
             self._rewrite_nports(ports)
             rekey(ports)
 
+        self.update_bus_logic()
         # disconnect hidden ports
         self.parent_flowgraph.disconnect(*[p for p in self.ports() if p.hidden])
 
         self.active_sources = [p for p in self.sources if not p.hidden]
         self.active_sinks = [p for p in self.sinks if not p.hidden]
 
+    def update_bus_logic(self):
+        ###############################
+        ## Bus Logic
+        ###############################
+        
+        for direc in {'source','sink'}:
+            if direc == 'source':
+                ports = self.sources
+                ports_gui = self.filter_bus_port(self.sources)
+                bus_state = self.bus_source
+            else:
+                ports = self.sinks
+                ports_gui = self.filter_bus_port(self.sinks)  
+                bus_state = self.bus_sink
+
+            # Remove the bus ports
+            removed_bus_ports = []
+            removed_bus_connections = []
+            if 'bus' in map(lambda a: a.dtype, ports):
+                for port in ports_gui:
+                    for c in self.parent_flowgraph.connections:
+                        if port is c.source_port or port is c.sink_port:
+                            removed_bus_ports.append(port)
+                            removed_bus_connections.append(c)
+                    ports.remove(port)
+
+
+            if (bus_state):
+                struct = self.form_bus_structure(direc)
+                self.current_bus_structure[direc] = struct
+
+                # Hide ports that are not part of the bus structure
+                #TODO: Blocks where it is desired to only have a subset 
+                # of ports included in the bus still has some issues
+                for idx, port in enumerate(ports):
+                    if any([idx in bus for bus in self.current_bus_structure[direc]]):
+                        if (port.stored_hidden_state is None):
+                            port.stored_hidden_state = port.hidden
+                            port.hidden = True
+
+                # Add the Bus Ports to the list of ports
+                for i in range(len(struct)):
+                    # self.sinks = [port_factory(parent=self, **params) for params in self.inputs_data]
+                    port = self.parent.parent.make_port(self,direction=direc,id=str(len(ports)),label='bus',dtype='bus',bus_struct=struct[i])
+                    ports.append(port)
+
+                    for (saved_port, connection) in zip(removed_bus_ports, removed_bus_connections):
+                        if port.key == saved_port.key:
+                            self.parent_flowgraph.connections.remove(connection)
+                            if saved_port.is_source:
+                                connection.source_port = port 
+                            if saved_port.is_sink:
+                                connection.sink_port = port 
+                            self.parent_flowgraph.connections.add(connection)
+
+                        
+            else:
+                self.current_bus_structure[direc] = None
+
+                # Re-enable the hidden property of the ports
+                for port in ports:
+                    port.hidden = port.stored_hidden_state
+                    port.stored_hidden_state = None
+
+
+
     def _rewrite_nports(self, ports):
         for port in ports:
             if hasattr(port, 'master_port'):  # Not a master port and no left-over clones
+                port.dtype = port.master_port.dtype
                 continue
             nports = port.multiplicity
             for clone in port.clones[nports-1:]:
@@ -217,6 +293,10 @@ class Block(Element):
     def is_import(self):
         return self.key == 'import'
 
+    @lazy_property
+    def is_snippet(self):
+        return self.key == 'snippet'
+
     @property
     def comment(self):
         return self.params['comment'].value
@@ -237,6 +317,44 @@ class Block(Element):
     def enabled(self):
         """Get the enabled state of the block"""
         return self.state != 'disabled'
+
+    @property
+    def bus_sink(self):
+        """Gets the block's current Toggle Bus Sink state."""
+        return self.states['bus_sink']
+
+    @bus_sink.setter
+    def bus_sink(self, value):
+        """Sets the Toggle Bus Sink state for the block."""
+        self.states['bus_sink'] = value
+
+    @property
+    def bus_source(self):
+        """Gets the block's current Toggle Bus Sink state."""
+        return self.states['bus_source']
+
+    @bus_source.setter
+    def bus_source(self, value):
+        """Sets the Toggle Bus Source state for the block."""
+        self.states['bus_source'] = value
+
+    @property
+    def bus_structure_source(self):
+        """Gets the block's current source bus structure."""
+        try:  
+            bus_structure = self.params['bus_structure_source'].value or None
+        except:
+            bus_structure = None
+        return bus_structure
+
+    @property
+    def bus_structure_sink(self):
+        """Gets the block's current source bus structure."""
+        try:  
+            bus_structure = self.params['bus_structure_sink'].value or None
+        except:
+            bus_structure = None
+        return bus_structure
 
     # endregion
 
@@ -282,7 +400,7 @@ class Block(Element):
 
         return [make_callback(c) for c in self.cpp_templates.render('callbacks')]
 
-    def decide_type(self):
+    def format_expr(self, py_type):
         """
         Evaluate the value of the variable block and decide its type.
 
@@ -292,60 +410,112 @@ class Block(Element):
         value = self.params['value'].value
         self.cpp_templates = copy.copy(self.orig_cpp_templates)
 
-        def get_type(element):
+        # Determine the lvalue type
+        def get_type(element, _vtype):
+            evaluated = None
             try:
                 evaluated = ast.literal_eval(element)
+                if _vtype == None:
+                    _vtype = type(evaluated)
+            except ValueError or SyntaxError as excp:
+                    if _vtype == None:
+                        print(excp)
 
-            except ValueError or SyntaxError:
-                if re.match(r'^(numpy|np|scipy|sp)\.pi$', value):
-                    return 'pi'
+            if _vtype in [int, float, bool, list, dict, str, complex]:
+                if _vtype == (int or long):
+                    return 'int'
+
+                if _vtype == float:
+                    return 'double'
+
+                if _vtype == bool:
+                    return 'bool'
+             
+                if _vtype == complex:
+                    return 'gr_complex'
+
+                if _vtype == list:
+                    try:
+                        # For container types we must also determine the type of the template parameter(s)
+                        return 'std::vector<' + get_type(str(evaluated[0]), type(evaluated[0])) + '>'
+
+                    except IndexError: # empty list
+                        return 'std::vector<std::string>'
+
+                if _vtype == dict:
+                    try:
+                        # For container types we must also determine the type of the template parameter(s)
+                        key = list(evaluated)[0]
+                        val = list(evaluated.values())[0]
+                        return 'std::map<' + get_type(str(key), type(key)) + ', ' + get_type(str(val), type(val)) +'>'
+
+                    except IndexError: # empty dict
+                        return 'std::map<std::string, std::string>'
+
                 else:
                     return 'std::string'
 
-            else:
-                _vtype = type(evaluated)
-                if _vtype in [int, float, bool, list]:
-                    if _vtype == (int or long):
-                        return 'int'
-
-                    if _vtype == float:
-                        return 'double'
-
-                    if _vtype == bool:
-                        return 'bool'
-
-                    if _vtype == list:
-                        try:
-                            first_element_type = type(evaluated[0])
-                            if first_element_type != str:
-                                list_type = get_type(str(evaluated[0]))
-                            else:
-                                list_type = get_type(evaluated[0])
-
-                        except IndexError: # empty list
-                            return 'std::vector<std::string>'
-
-                        else:
-                            return 'std::vector<' + list_type + '>'
-
-                else:
-                    return 'std::string'
-
-        self.vtype = get_type(value)
-        if self.vtype == 'bool':
-            self.cpp_templates['var_make'] = self.cpp_templates['var_make'].replace('${value}', (value[0].lower() + value[1:]))
-
-        elif self.vtype == 'pi':
-            self.vtype = 'double'
-            self.cpp_templates['var_make'] = self.cpp_templates['var_make'].replace('${value}', 'boost::math::constants::pi<double>()')
-            self.cpp_templates['includes'].append('#include <boost/math/constants/constants.hpp>')
-
-        elif 'std::vector' in self.vtype:
-            self.cpp_templates['includes'].append('#include <vector>')
-            self.cpp_templates['var_make'] = self.cpp_templates['var_make'].replace('${value}', '{' + value[1:-1] + '}')
+        # Get the lvalue type
+        self.vtype = get_type(value, py_type)
+    
+        # The r-value for these types must be transformed to create legal C++ syntax.
+        if self.vtype in ['bool', 'gr_complex'] or 'std::map' in self.vtype or 'std::vector' in self.vtype:
+            evaluated = ast.literal_eval(value)
+            self.cpp_templates['var_make'] = self.cpp_templates['var_make'].replace('${value}', self.get_cpp_value(evaluated)) 
 
         if 'string' in self.vtype:
             self.cpp_templates['includes'].append('#include <string>')
+
+
+    def get_cpp_value(self, pyval):
+
+        if type(pyval) == int or type(pyval) == float:
+            val_str = str(pyval)
+
+            # Check for PI and replace with C++ constant
+            pi_re = r'^(math|numpy|np|scipy|sp)\.pi$'
+            if re.match(pi_re, str(pyval)):
+                val_str = re.sub(pi_re, 'boost::math::constants::pi<double>()', val_str)
+                self.cpp_templates['includes'].append('#include <boost/math/constants/constants.hpp>')
+                
+            return str(pyval)
+
+        elif type(pyval) == bool:
+            return str(pyval)[0].lower() + str(pyval)[1:]
+
+        elif type(pyval) == complex:
+            self.cpp_templates['includes'].append('#include <gnuradio/gr_complex.h>')
+            evaluated = ast.literal_eval(str(pyval).strip())
+            return '{' + str(evaluated.real) + ', ' + str(evaluated.imag) + '}'
+
+        elif type(pyval) == list:
+            self.cpp_templates['includes'].append('#include <vector>')
+            val_str = '{'
+            for element in pyval:
+                val_str += self.get_cpp_value(element) + ', '
+
+            if len(val_str) > 1:
+              # truncate to trim superfluous ', ' from the end
+              val_str = val_str[0:-2]
+ 
+            return val_str + '}'
+
+        elif type(pyval) == dict:
+            self.cpp_templates['includes'].append('#include <map>')
+            val_str = '{'
+            for key in pyval:
+                val_str += '{' + self.get_cpp_value(key) + ', ' + self.get_cpp_value(pyval[key]) + '}, '
+
+            if len(val_str) > 1:
+              # truncate to trim superfluous ', ' from the end
+              val_str = val_str[0:-2]
+
+            return val_str + '}'
+
+        if type(self.vtype) == str:
+            self.cpp_templates['includes'].append('#include <string>')
+            return '"' + pyval + '"'    
+
 
     def is_virtual_sink(self):
         return self.key == 'virtual_sink'
@@ -461,3 +631,96 @@ class Block(Element):
             # Store hash and call rewrite
             pre_rewrite_hash = get_hash()
             self.rewrite()
+            
+    ##############################################
+    # Controller Modify
+    ##############################################
+    def filter_bus_port(self, ports):
+        buslist = [p for p in ports if p.dtype == 'bus']
+        return buslist or ports
+
+    def type_controller_modify(self, direction):
+        """
+        Change the type controller.
+
+        Args:
+            direction: +1 or -1
+
+        Returns:
+            true for change
+        """
+        changed = False
+        type_param = None
+        for param in filter(lambda p: p.is_enum(), self.get_params()):
+            children = self.get_ports() + self.get_params()
+            # Priority to the type controller
+            if param.get_key() in ' '.join(map(lambda p: p._type, children)): type_param = param
+            # Use param if type param is unset
+            if not type_param:
+                type_param = param
+        if type_param:
+            # Try to increment the enum by direction
+            try:
+                keys = type_param.get_option_keys()
+                old_index = keys.index(type_param.get_value())
+                new_index = (old_index + direction + len(keys)) % len(keys)
+                type_param.set_value(keys[new_index])
+                changed = True
+            except:
+                pass
+        return changed
+
+    def form_bus_structure(self, direc):
+        if direc == 'source':
+            ports = self.sources
+            bus_structure = self.get_bus_structure('source')
+        else:
+            ports = self.sinks
+            bus_structure = self.get_bus_structure('sink')
+
+        struct = [range(len(ports))]
+        # struct = list(range(len(ports)))
+        #TODO for more complicated port structures, this code is needed but not working yet
+        if any([p.multiplicity for p in ports]):
+            structlet = []
+            last = 0
+            # group the ports with > n inputs together on the bus
+            cnt = 0
+            idx = 0
+            for p in ports:
+                if cnt > 0:
+                    cnt -= 1
+                    continue
+
+                if p.multiplicity > 1:
+                    cnt = p.multiplicity-1
+                    structlet.append([idx+j for j in range(p.multiplicity)])
+                else:
+                    structlet.append([idx])
+
+            struct = structlet
+        if bus_structure:
+            struct = bus_structure
+
+        self.current_bus_structure[direc] = struct
+        return struct
+
+    def bussify(self, direc):
+        if direc == 'source':
+            ports = self.sources
+            ports_gui = self.filter_bus_port(self.sources)
+            self.bus_structure = self.get_bus_structure('source')
+            self.bus_source = not self.bus_source
+        else:
+            ports = self.sinks
+            ports_gui = self.filter_bus_port(self.sinks)
+            self.bus_structure = self.get_bus_structure('sink')
+            self.bus_sink = not self.bus_sink
+
+        # Disconnect all the connections when toggling the bus state
+        for port in ports:
+            l_connections = list(port.connections())
+            for connect in l_connections:
+                self.parent.remove_element(connect)
+
+        self.update_bus_logic()

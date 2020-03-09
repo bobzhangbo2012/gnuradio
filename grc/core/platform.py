@@ -1,19 +1,8 @@
 # Copyright 2008-2016 Free Software Foundation, Inc.
 # This file is part of GNU Radio
 #
-# GNU Radio Companion is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# GNU Radio Companion is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 
 
 from __future__ import absolute_import, print_function
 
@@ -110,6 +99,7 @@ class Platform(Element):
                 raise Exception('Not a hier block')
         except Exception as e:
             Messages.send('>>> Load Error: {}: {}\n'.format(file_path, str(e)))
+            Messages.send_flowgraph_error_report(flow_graph)
             return None, None
         finally:
             self._auto_hier_block_generate_chain.discard(file_path)
@@ -151,7 +141,6 @@ class Platform(Element):
 
         with Cache(Constants.CACHE_FILE) as cache:
             for file_path in self._iter_files_in_block_path(path):
-                data = cache.get_or_load(file_path)
 
                 if file_path.endswith('.block.yml'):
                     loader = self.load_block_description
@@ -167,6 +156,7 @@ class Platform(Element):
 
                 try:
                     checker = schema_checker.Validator(scheme)
+                    data = cache.get_or_load(file_path)
                     passed = checker.run(data)
                     for msg in checker.messages:
                         logger.warning('{:<40s} {}'.format(os.path.basename(file_path), msg))
@@ -177,6 +167,9 @@ class Platform(Element):
                 except Exception as error:
                     logger.exception('Error while loading %s', file_path)
                     logger.exception(error)
+                    Messages.flowgraph_error = error
+                    Messages.flowgraph_error_file = file_path
+                    continue
 
         for key, block in six.iteritems(self.blocks):
             category = self._block_categories.get(key, block.category)
@@ -325,6 +318,7 @@ class Platform(Element):
         @throws exception if the validation fails
         """
         filename = filename or self.config.default_flow_graph
+        is_xml = False
         with open(filename, encoding='utf-8') as fp:
             is_xml = '<flow_graph>' in fp.read(100)
             fp.seek(0)
@@ -333,10 +327,11 @@ class Platform(Element):
                 data = yaml.safe_load(fp)
                 validator = schema_checker.Validator(schema_checker.FLOW_GRAPH_SCHEME)
                 validator.run(data)
-            else:
-                Messages.send('>>> Converting from XML\n')
-                from ..converter.flow_graph import from_xml
-                data = from_xml(fp)
+
+        if is_xml:
+            Messages.send('>>> Converting from XML\n')
+            from ..converter.flow_graph import from_xml
+            data = from_xml(filename)
 
         return data
 

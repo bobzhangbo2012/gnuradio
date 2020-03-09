@@ -4,20 +4,8 @@
  *
  * This file is part of GNU Radio
  *
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
  */
 
 #ifndef LDPC_H
@@ -26,17 +14,17 @@
 #include <iostream>
 #include <vector>
 
-#include "gnuradio/fec/gf2vec.h"
-#include "gnuradio/fec/gf2mat.h"
 #include "gnuradio/fec/alist.h"
+#include "gnuradio/fec/gf2mat.h"
+#include "gnuradio/fec/gf2vec.h"
 
 
 #include <gnuradio/fec/api.h>
 class FEC_API cldpc
 {
-  public:
+public:
     //! Default constructor
-    cldpc() {};
+    cldpc(){};
 
     //! Constructs the LDPC class from given GF2mat X
     cldpc(const GF2Mat X);
@@ -89,7 +77,7 @@ class FEC_API cldpc
     //! Obtain systematic bits from "in"
     std::vector<char> get_systematic_bits(std::vector<char> in);
 
-  private:
+private:
     //! The parity check matrix
     GF2Mat H;
 

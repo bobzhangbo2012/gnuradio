@@ -2,19 +2,8 @@
 Copyright 2007, 2008, 2009 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import, division
@@ -124,17 +113,18 @@ class Port(CorePort, Drawable):
         label_width, label_height = self.label_layout.get_size()
 
         self.width = 2 * Constants.PORT_LABEL_PADDING + label_width / Pango.SCALE
-        self.height = 2 * Constants.PORT_LABEL_PADDING + label_height / Pango.SCALE
+        self.height = (2 * Constants.PORT_LABEL_PADDING + label_height*(3 if self.dtype == 'bus' else 1) ) / Pango.SCALE
         self._label_layout_offsets = [0, Constants.PORT_LABEL_PADDING]
-        # if self.dtype == 'bus':
-        #     self.height += Constants.PORT_EXTRA_BUS_HEIGHT
-        #     self._label_layout_offsets[1] += Constants.PORT_EXTRA_BUS_HEIGHT / 2
+
         self.height += self.height % 2  # uneven height
 
     def draw(self, cr):
         """
         Draw the socket with a label.
         """
+        if self.hidden:
+            return
+
         border_color = self._border_color
         cr.set_line_width(self._line_width_factor * cr.get_line_width())
         cr.translate(*self.coordinate)

@@ -31,7 +31,7 @@ http://files.ettus.com/manual/annotated.html
 \section uhd_command_syntax Command Syntax
 
 The UHD sink and source can be controlled by a message port. These message ports
-take commands, which are PMTs formatted as described in \ref msg_passing_commands.
+take commands, which are PMTs formatted as described in <a href="https://wiki.gnuradio.org/index.php/Message_Passing" target="_blank">Using messages as commands</a>.
 
 There is a legacy format, which will be deprecated in the future, where commands may
 be tuples, formatted as:
@@ -142,10 +142,9 @@ A typical option parser setup for a UHD device looks like
 To use these options to create a UHD source object:
 
 \code
+    stream_args = uhd.stream_args()
     self.u = uhd.usrp_source(device_addr=options.args,
-                             io_type=uhd.io_type.COMPLEX_FLOAT32,
-                             num_channels=1)
-
+                             stream_args)
     self.u.set_samp_rate(options.samp_rate)
 
     # if no gain was specified, use the mid-point in dB

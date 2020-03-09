@@ -2,30 +2,34 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 ########################################################################
 # Setup library
 ########################################################################
-add_library(gnuradio-uhd
-    usrp_block_impl.cc
-    usrp_source_impl.cc
-    usrp_sink_impl.cc
+set(LIB_GR_UHD_SOURCES
     amsg_source_impl.cc
+    usrp_block_impl.cc
+    usrp_sink_impl.cc
+    usrp_source_impl.cc
 )
+
+if(ENABLE_UHD_RFNOC)
+    list(APPEND LIB_GR_UHD_SOURCES
+        rfnoc_block.cc
+        rfnoc_block_generic_impl.cc
+        rfnoc_ddc_impl.cc
+        rfnoc_duc_impl.cc
+        rfnoc_graph_impl.cc
+        rfnoc_rx_radio_impl.cc
+        rfnoc_rx_streamer_impl.cc
+        rfnoc_tx_radio_impl.cc
+        rfnoc_tx_streamer_impl.cc
+    )
+endif(ENABLE_UHD_RFNOC)
+
+add_library(gnuradio-uhd ${LIB_GR_UHD_SOURCES})
 
 target_link_libraries(gnuradio-uhd
   gnuradio-runtime
@@ -37,8 +41,6 @@ target_include_directories(gnuradio-uhd
   $<INSTALL_INTERFACE:include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
   )
-
-
 
 #Add Windows DLL resource file if using MSVC
 if(MSVC)

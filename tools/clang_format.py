@@ -50,8 +50,8 @@ if __name__ == "__main__" and __package__ is None:
 #
 
 # Expected version of clang-format
-CLANG_FORMAT_VERSION = "4.0.1"
-CLANG_FORMAT_SHORT_VERSION = "4.0"
+CLANG_FORMAT_VERSION = "7.0.1"
+CLANG_FORMAT_SHORT_VERSION = "7.0"
 
 # Name of clang-format as a binary
 CLANG_FORMAT_PROGNAME = "clang-format"
@@ -69,7 +69,7 @@ def callo(args):
 
 class ClangFormat(object):
     """Class encapsulates finding a suitable copy of clang-format,
-    and linting/formating an individual file
+    and linting/formatting an individual file
     """
 
     def __init__(self, path):

@@ -1,5 +1,6 @@
 id: variable_ccsds_encoder_def
 label: CCSDS Encoder Definition
+flags: [ show_id ]
 
 parameters:
 -   id: ndim
@@ -43,9 +44,9 @@ templates:
         (lambda a: fec.ccsds_encoder_make(${framebits}, ${state_start}, ${mode})),\
         range(0,${dim1}) ))
         % else:
-        self.${id} = ${id} = list(map( (lambda b: map(\
+        self.${id} = ${id} = list(map( (lambda b: list( map(\
         ( lambda a: fec.ccsds_encoder_make(${framebits}, ${state_start}, ${mode})),\
-        range(0,${dim2}) ) ), range(0,${dim1})))
+        range(0,${dim2}) ) ) ), range(0,${dim1})))
         % endif
 
 documentation: ""

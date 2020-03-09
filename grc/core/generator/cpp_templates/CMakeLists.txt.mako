@@ -13,10 +13,10 @@
 
 <%
 class_name = flow_graph.get_option('id')
-cmake_opt_list = flow_graph.get_option('cmake_opt').split(";")
 %>\
 
 cmake_minimum_required(VERSION 3.8)
+set(CMAKE_CXX_STANDARD 11)
 
 % if generate_options == 'qt_gui':
 find_package(Qt5Widgets REQUIRED)
@@ -26,20 +26,20 @@ include_directories(
     ${'$'}{GNURADIO_ALL_INCLUDE_DIRS}
     ${'$'}{Boost_INCLUDE_DIRS}
     % if generate_options == 'qt_gui':
-    ${'$'}{Qt5Widgets_INCLUDES}
+    ${'$'}{Qt5Widgets_INCLUDE_DIRS}
     % endif
     $ENV{HOME}/.grc_gnuradio
 )
 
 % if generate_options == 'qt_gui':
 add_definitions(${'$'}{Qt5Widgets_DEFINITIONS})
-
+set(CMAKE_CXX_FLAGS "${'$'}{CMAKE_CXX_FLAGS} -fPIC")
 set(CMAKE_AUTOMOC TRUE)
 % endif
 
-% if cmake_opt_list != ['']:
-% for opt in cmake_opt_list:
-set(${opt.split("=")[0].strip()} ${opt.split("=")[1].strip()})
+% if cmake_tuples:
+% for key, val in cmake_tuples:
+set(${key} ${val})
 % endfor
 % endif
 

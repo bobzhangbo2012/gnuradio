@@ -1,19 +1,8 @@
 # Copyright 2008-2016 Free Software Foundation, Inc.
 # This file is part of GNU Radio
 #
-# GNU Radio Companion is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# GNU Radio Companion is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+# SPDX-License-Identifier: GPL-2.0-or-later
+# 
 
 from __future__ import absolute_import
 
@@ -39,14 +28,25 @@ class Port(Element):
     optional = EvaluatedFlag()
 
     def __init__(self, parent, direction, id, label='', domain=Constants.DEFAULT_DOMAIN, dtype='',
-                 vlen='', multiplicity=1, optional=False, hide=False, **_):
+                 vlen='', multiplicity=1, optional=False, hide=False, bus_struct=None, **_):
         """Make a new port from nested data."""
         Element.__init__(self, parent)
 
         self._dir = direction
         self.key = id
         if not label:
-            label = id if not id.isdigit() else {'sink': 'in', 'source': 'out'}[direction] + id
+            label = id if not id.isdigit() else {'sink': 'in', 'source': 'out'}[direction]
+        if dtype == 'bus':
+            # Look for existing busses to give proper index
+            busses = [p for p in self.parent.ports() if p._dir == self._dir and p.dtype == 'bus']
+            bus_structure = self.parent.current_bus_structure[self._dir]
+            bus_index = len(busses)
+            if len(bus_structure) > bus_index: 
+                number = str(len(busses)) + '#' + str(len(bus_structure[bus_index]))
+                label = dtype + number
+            else:
+                raise ValueError('Could not initialize bus port due to incompatible bus structure')
+
         self.name = self._base_name = label
 
         self.domain = domain
@@ -60,6 +60,9 @@ class Port(Element):
         self.multiplicity = multiplicity
         self.optional = optional
         self.hidden = hide
+        self.stored_hidden_state = None
+        self.bus_structure = bus_struct
+
         # end of args ########################################################
         self.clones = []  # References to cloned ports (for nports > 1)
 
@@ -203,5 +206,42 @@ class Port(Element):
         enabled: None for all, True for enabled only, False for disabled only
         """
         for con in self.parent_flowgraph.connections:
-            if self in con and (enabled is None or enabled == con.enabled):
-                yield con
+            #TODO clean this up - but how to get past this validation
+            # things don't compare simply with an x in y because
+            # bus ports are created differently.  
+            port_in_con = False
+            if self.dtype == 'bus':
+                if self.is_sink:
+                    if (self.parent.name == con.sink_port.parent.name and
+                       self.name == con.sink_port.name):
+                            port_in_con = True
+                elif self.is_source:
+                    if (self.parent.name == con.source_port.parent.name and
+                       self.name == con.source_port.name):
+                            port_in_con = True
+            
+                if port_in_con:
+                    yield con
+                    
+            else:
+                if self in con and (enabled is None or enabled == con.enabled):
+                    yield con
+
+    def get_associated_ports(self):
+        if not self.dtype == 'bus':
+            return [self]
+        else:
+            if self.is_source:
+                get_ports = self.parent.sources
+                bus_structure = self.parent.current_bus_structure['source']
+            else:
+                get_ports = self.parent.sinks
+                bus_structure = self.parent.current_bus_structure['sink']
+
+            ports = [i for i in get_ports if not i.dtype == 'bus']
+            if bus_structure:
+                busses = [i for i in get_ports if i.dtype == 'bus']
+                bus_index = busses.index(self)
+                ports = filter(lambda a: ports.index(a) in bus_structure[bus_index], ports)
+            return ports
+

@@ -2,20 +2,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 ########################################################################
 # Setup dependencies
@@ -25,10 +13,9 @@ include(GrPython)
 message(STATUS "")
 
 GR_PYTHON_CHECK_MODULE_RAW(
-    "python2 >= 2.7.6 or python3 >= 3.4.0"
+    "python3 >= ${GR_PYTHON_MIN_VERSION}"
     "import sys; \
-     requirement = (3, 4, 0) if sys.version_info.major >= 3 else (2, 7, 6); \
-     assert sys.version_info[:3] >= requirement"
+    assert '.'.join([str(x) for x in sys.version_info[:3]]) >= '${GR_PYTHON_MIN_VERSION}'"
     PYTHON_MIN_VER_FOUND
 )
 
@@ -39,8 +26,8 @@ GR_PYTHON_CHECK_MODULE_RAW(
 )
 
 GR_PYTHON_CHECK_MODULE_RAW(
-    "mako >= 0.9.1"
-    "import mako; assert mako.__version__ >= '0.9.1'"
+    "mako >= ${GR_MAKO_MIN_VERSION}"
+    "import mako; assert mako.__version__ >= '${GR_MAKO_MIN_VERSION}'"
     MAKO_FOUND
 )
 
@@ -101,7 +88,7 @@ GR_REGISTER_COMPONENT("gnuradio-companion" ENABLE_GRC
 if(ENABLE_GRC)
 
 ########################################################################
-# Create and install the grc conf file
+# Create and install the grc and grc-docs conf file
 ########################################################################
 file(TO_NATIVE_PATH ${CMAKE_INSTALL_PREFIX}/${GRC_BLOCKS_DIR} blocksdir)
 if(CMAKE_INSTALL_PREFIX STREQUAL "/usr")
@@ -129,6 +116,16 @@ configure_file(
 
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/grc.conf
+    DESTINATION ${GR_PREFSDIR}
+)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/00-grc-docs.conf.in
+    ${CMAKE_CURRENT_BINARY_DIR}/00-grc-docs.conf
+@ONLY)
+
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/00-grc-docs.conf
     DESTINATION ${GR_PREFSDIR}
 )
 
@@ -180,5 +177,6 @@ endif(WIN32)
 ########################################################################
 add_subdirectory(blocks)
 add_subdirectory(scripts)
+add_subdirectory(tests)
 
 endif(ENABLE_GRC)

@@ -2,19 +2,8 @@
 Copyright 2007-2011 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import
@@ -49,11 +38,11 @@ class Namespace(object):
                  icon_name=None, keypresses=None, preference_name=None, default=None):
         # Check types
         if not isinstance(name, str):
-            raise TypeError("Cannot register fuction: 'name' must be a str")
+            raise TypeError("Cannot register function: 'name' must be a str")
         if parameter and not isinstance(parameter, str):
-            raise TypeError("Cannot register fuction: 'parameter' must be a str")
+            raise TypeError("Cannot register function: 'parameter' must be a str")
         if handler and not callable(handler):
-            raise TypeError("Cannot register fuction: 'handler' must be callable")
+            raise TypeError("Cannot register function: 'handler' must be callable")
 
         # Check if the name has a prefix.
         prefix = None
@@ -398,6 +387,12 @@ TOGGLE_HIDE_VARIABLES = actions.register("win.hide_variables",
     label='Hide Variables',
     tooltip='Hide all variable blocks',
     preference_name='hide_variables',
+    default=False,
+)
+TOGGLE_SHOW_BLOCK_IDS = actions.register("win.show_block_ids",
+    label='Show All Block IDs',
+    tooltip='Show all the block IDs',
+    preference_name='show_block_ids',
     default=False,
 )
 TOGGLE_FLOW_GRAPH_VAR_EDITOR = actions.register("win.toggle_variable_editor",

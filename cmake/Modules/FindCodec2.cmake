@@ -2,20 +2,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 ##############################
 # Check for system libcodec2 #
@@ -60,6 +48,18 @@ if(LIBCODEC2_INCLUDE_DIR AND LIBCODEC2_LIBRARIES)
     endforeach()
   else()
     set(LIBCODEC2_HAS_FREEDV_API false)
+  endif()
+
+  # we need to discover if codec2 < 0.9
+  # moreover, codec2 < 0.8 doesn't provide codec2/version.h
+  if(EXISTS "${LIBCODEC2_INCLUDE_DIRS}/version.h")
+    file(READ "${LIBCODEC2_INCLUDE_DIRS}/version.h" _CODEC2_VERSION_H_CONTENTS)
+    string(REGEX MATCH "CODEC2_VERSION_MAJOR ([0-9]+)(.*)CODEC2_VERSION_MINOR ([0-9]+)" _CODEC2_TMP_MATCH " ${_CODEC2_VERSION_H_CONTENTS}")
+    if((CMAKE_MATCH_1 EQUAL 0) AND (CMAKE_MATCH_3 LESS 9))
+      add_definitions(-DCODEC2_LEGACY)
+    endif()
+  else()
+    add_definitions(-DCODEC2_LEGACY)
   endif()
 endif(LIBCODEC2_INCLUDE_DIR AND LIBCODEC2_LIBRARIES)
 

@@ -4,20 +4,8 @@
  *
  * This file is part of GNU Radio
  *
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
  */
 
 #define FILTER_API
@@ -38,6 +26,7 @@
 #include "gnuradio/filter/fft_filter_ccc.h"
 #include "gnuradio/filter/fft_filter_ccf.h"
 #include "gnuradio/filter/fft_filter_fff.h"
+#include "gnuradio/filter/ival_decimator.h"
 #include "gnuradio/filter/mmse_interpolator_cc.h"
 #include "gnuradio/filter/mmse_interpolator_ff.h"
 #include "gnuradio/filter/mmse_resampler_cc.h"
@@ -66,6 +55,7 @@
 %include "gnuradio/filter/pm_remez.h"
 %include "gnuradio/filter/dc_blocker_cc.h"
 %include "gnuradio/filter/dc_blocker_ff.h"
+%include "gnuradio/filter/ival_decimator.h"
 %include "gnuradio/filter/filter_delay_fc.h"
 %include "gnuradio/filter/filterbank_vcvcf.h"
 %include "gnuradio/filter/fir_filter_blk.h"
@@ -97,6 +87,7 @@
 
 GR_SWIG_BLOCK_MAGIC2(filter, dc_blocker_cc);
 GR_SWIG_BLOCK_MAGIC2(filter, dc_blocker_ff);
+GR_SWIG_BLOCK_MAGIC2(filter, ival_decimator);
 GR_SWIG_BLOCK_MAGIC2(filter, filter_delay_fc);
 GR_SWIG_BLOCK_MAGIC2(filter, filterbank_vcvcf);
 GR_SWIG_BLOCK_MAGIC2_TMPL(filter, fir_filter_ccc, fir_filter_blk<gr_complex, gr_complex, gr_complex>);

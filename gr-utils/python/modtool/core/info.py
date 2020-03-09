@@ -3,20 +3,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 #
 """ Returns information about a module """
 
@@ -57,6 +45,8 @@ class ModToolInfo(ModTool):
                 os.path.isdir(os.path.join('include', 'gnuradio', mod_info['modname']))
                 ):
             self.info['version'] = '37'
+        if not os.path.isfile(os.path.join('cmake', 'Modules', 'FindCppUnit.cmake')):
+            self.info['version'] = '38'
         mod_info['version'] = self.info['version']
         if 'is_component' in list(self.info.keys()) and self.info['is_component']:
             mod_info['is_component'] = True

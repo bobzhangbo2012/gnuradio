@@ -1,6 +1,7 @@
 id: zeromq_pub_sink
 label: ZMQ PUB Sink
 category: '[Core]/ZeroMQ Interfaces'
+flags: [python, cpp]
 
 parameters:
 -   id: type
@@ -34,6 +35,10 @@ parameters:
     dtype: int
     default: '-1'
     hide: ${ ('part' if hwm == -1 else 'none') }
+-   id: key
+    label: Filter Key
+    dtype: string
+    default: ''
 
 inputs:
 -   domain: stream
@@ -43,6 +48,20 @@ inputs:
 templates:
     imports: from gnuradio import zeromq
     make: zeromq.pub_sink(${type.itemsize}, ${vlen}, ${address}, ${timeout}, ${pass_tags},
-        ${hwm})
+        ${hwm}, ${key})
         
+cpp_templates:
+    includes: [ '#include <gnuradio/zeromq/pub_sink.h>' ]
+    declarations: gr::zeromq::pub_sink::sptr ${id};
+    make: this->${id} = gr::zeromq::pub_sink::make(${type.itemsize}, 
+        ${vlen}, 
+        const_cast<char *>(${address}${'.c_str())' if str(address)[0] not in '"\'' else ')'},
+        ${timeout}, 
+        ${pass_tags}, 
+        ${hwm});
+    link: ['gnuradio-zeromq']      
+    translations:
+      'True': 'true'
+      'False': 'false'
+
 file_format: 1

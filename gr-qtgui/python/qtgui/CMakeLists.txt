@@ -2,20 +2,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 ########################################################################
 include(GrPython)
@@ -27,8 +15,23 @@ configure_file(util.py.cmakein "${CMAKE_CURRENT_BINARY_DIR}/util.py" @ONLY)
 
 GR_PYTHON_INSTALL(
     FILES __init__.py
-          "${CMAKE_CURRENT_BINARY_DIR}/range.py"
-          "${CMAKE_CURRENT_BINARY_DIR}/util.py"
+    compass.py
+    togglebutton.py
+    msgpushbutton.py
+    msgcheckbox.py
+    distanceradar.py
+    azelplot.py
+    digitalnumbercontrol.py
+    dialcontrol.py
+    ledindicator.py
+    graphicitem.py
+    levelgauge.py
+    dialgauge.py
+    toggleswitch.py
+    graphicoverlay.py
+    auto_correlator_sink.py
+    "${CMAKE_CURRENT_BINARY_DIR}/range.py"
+    "${CMAKE_CURRENT_BINARY_DIR}/util.py"
     DESTINATION ${GR_PYTHON_DIR}/gnuradio/qtgui
 )
 

@@ -2,20 +2,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 ########################################################################
 # Rules for generating the source and sink yml wrappers
@@ -43,3 +31,30 @@ install(FILES
     uhd.tree.yml
     DESTINATION ${GRC_BLOCKS_DIR}
 )
+
+if(ENABLE_UHD_RFNOC)
+    install(FILES
+        rfnoc.domain.yml
+        uhd_fpga_clk.domain.yml
+        uhd_fpga_ctrl.domain.yml
+        uhd_fpga_data.domain.yml
+        uhd_fpga_ddc.block.yml
+        uhd_fpga_duc.block.yml
+        uhd_fpga_fft.block.yml
+        uhd_fpga_io_ctrl_port.domain.yml
+        uhd_fpga_io_radio.domain.yml
+        uhd_fpga_io_time_keeper.domain.yml
+        uhd_fpga_radio.block.yml
+        uhd_fpga_sep.block.yml
+        uhd_fpga_x310.block.yml
+        uhd_rfnoc_ddc.block.yml
+        uhd_rfnoc_duc.block.yml
+        uhd_rfnoc_fft.block.yml
+        uhd_rfnoc_graph.block.yml
+        uhd_rfnoc_rx_radio.block.yml
+        uhd_rfnoc_rx_streamer.block.yml
+        uhd_rfnoc_tx_radio.block.yml
+        uhd_rfnoc_tx_streamer.block.yml
+        DESTINATION ${GRC_BLOCKS_DIR}
+    )
+endif(ENABLE_UHD_RFNOC)

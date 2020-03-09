@@ -4,20 +4,8 @@
  *
  * This file is part of GNU Radio
  *
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
  */
 
 #ifndef _VOCODER_FREEDV_H_
@@ -25,19 +13,25 @@
 
 #include <gnuradio/vocoder/api.h>
 
+// version >=0.9.1 contains fixes that doesn't require "extern C"
+// between 0.8.1 and 0.9.1 the build fail
+#ifdef CODEC2_LEGACY
 extern "C" {
+#endif
 #include <codec2/codec2.h>
 #include <codec2/freedv_api.h>
 #include <codec2/modem_stats.h>
+#ifdef CODEC2_LEGACY
 }
+#endif
 
 namespace gr {
-  namespace vocoder {
+namespace vocoder {
 
-    class VOCODER_API freedv_api {
-    public:
-
-      enum freedv_modes {
+class VOCODER_API freedv_api
+{
+public:
+    enum freedv_modes {
 #ifdef FREEDV_MODE_1600
         MODE_1600 = FREEDV_MODE_1600,
 #endif
@@ -61,17 +55,16 @@ namespace gr {
 #endif
 #ifdef FREEDV_MODE_700D
         MODE_700D = FREEDV_MODE_700D,
-	SYNC_UNSYNC = FREEDV_SYNC_UNSYNC,
-	SYNC_AUTO = FREEDV_SYNC_AUTO,
-	SYNC_MANUAL = FREEDV_SYNC_MANUAL,
+        SYNC_UNSYNC = FREEDV_SYNC_UNSYNC,
+        SYNC_AUTO = FREEDV_SYNC_AUTO,
+        SYNC_MANUAL = FREEDV_SYNC_MANUAL,
 #endif
-      };
-
-    private:
-
     };
 
-  } /* namespace vocoder */
+private:
+};
+
+} /* namespace vocoder */
 } /* namespace gr */
 
 #endif /* _VOCODER_FREEDV_H_ */

@@ -2,19 +2,8 @@
 Copyright 2008, 2009, 2011 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import
@@ -74,8 +63,11 @@ class MainWindow(Gtk.ApplicationWindow):
         icon_theme = Gtk.IconTheme.get_default()
         icon = icon_theme.lookup_icon("gnuradio-grc", 48, 0)
         if not icon:
-            # Set window icon
+            # Set default window icon
             self.set_icon_from_file(os.path.dirname(os.path.abspath(__file__)) + "/icon.png")
+        else :
+            # Use gnuradio icon
+            self.set_icon(icon.load_icon())
 
         # Create the menu bar and toolbar
         generate_modes = platform.get_generate_options()
@@ -260,6 +252,13 @@ class MainWindow(Gtk.ApplicationWindow):
                 flow_graph=flow_graph,
                 file_path=file_path,
             )
+            if getattr(Messages, 'flowgraph_error') is not None:
+                Messages.send(
+                    ">>> Check: {}\n>>> FlowGraph Error: {}\n".format(
+                        str(Messages.flowgraph_error_file),
+                        str(Messages.flowgraph_error)
+                    )
+                )
             if file_path: Messages.send_end_load()
         except Exception as e: #return on failure
             Messages.send_fail_load(e)
@@ -331,7 +330,9 @@ class MainWindow(Gtk.ApplicationWindow):
             Actions.FLOW_GRAPH_KILL()
         #remove the page
         self.notebook.remove_page(self.notebook.page_num(self.page_to_be_closed))
-        if ensure and self.notebook.get_n_pages() == 0: self.new_page() #no pages, make a new one
+        if ensure and self.notebook.get_n_pages() == 0:
+            self.new_page() #no pages, make a new one
+            self.current_page.saved = False
         self.page_to_be_closed = None #set the page to be closed back to None
         return True
 

@@ -2,20 +2,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 
 ########################################################################
 # Setup compatibility checks and defines
@@ -32,6 +20,10 @@ add_library(gnuradio-blocks
     and_blk_impl.cc
     and_const_impl.cc
     argmax_impl.cc
+    correctiq_auto_impl.cc
+    correctiq_impl.cc
+    correctiq_man_impl.cc
+    correctiq_swapiq_impl.cc
     divide_impl.cc
     integrate_impl.cc
     max_blk_impl.cc
@@ -46,6 +38,7 @@ add_library(gnuradio-blocks
     probe_signal_impl.cc
     probe_signal_v_impl.cc
     sample_and_hold_impl.cc
+    selector_impl.cc
     sub_impl.cc
     tsb_vector_sink_impl.cc
     unpacked_to_packed_impl.cc
@@ -105,7 +98,6 @@ add_library(gnuradio-blocks
     head_impl.cc
     int_to_float_impl.cc
     interleave_impl.cc
-    interleaved_short_array_to_complex.cc
     interleaved_short_to_complex_impl.cc
     interleaved_char_to_complex_impl.cc
     keep_m_in_n_impl.cc

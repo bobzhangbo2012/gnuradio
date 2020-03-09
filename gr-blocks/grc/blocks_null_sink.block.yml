@@ -21,7 +21,7 @@ parameters:
     dtype: int
     default: '1'
     hide: part
--   id: bus_conns
+-   id: bus_structure_sink
     label: Bus Connections
     dtype: raw
     default: '[[0,],]'
@@ -44,8 +44,6 @@ templates:
 cpp_templates:
     includes: ['#include <gnuradio/blocks/null_sink.h>']
     declarations: 'blocks::null_sink::sptr ${id};'
-    make: 'this->${id} = blocks::null_sink::make(${type.size})*${vlen});'
-    translations:
-        gr.sizeof_: 'sizeof('
+    make: 'this->${id} = blocks::null_sink::make(${type.size}*${vlen});'
 
 file_format: 1

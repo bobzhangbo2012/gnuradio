@@ -1,6 +1,5 @@
 id: qtgui_time_sink_x
 label: QT GUI Time Sink
-flags: [ python ]
 
 parameters:
 -   id: type
@@ -160,48 +159,64 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 1
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 1 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width1
     label: Line 1 Width
     default: 1
     hide: ${ ('part' if (
             int(nconnections) >= 1
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 1 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color1
     label: Line 1 Color
-    dtype: string
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
     default: 'blue'
     hide: ${ ('part' if (
             int(nconnections) >= 1
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 1 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style1
     label: Line 1 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     hide: ${ ('part' if (
             int(nconnections) >= 1
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 1 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker1
     label: Line 1 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     hide: ${ ('part' if (
             int(nconnections) >= 1
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 1 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha1
     label: Line 1 Alpha
     dtype: real
@@ -209,9 +224,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 1
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 1 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label2
     label: Line 2 Label
@@ -221,9 +238,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 2
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 2 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width2
     label: Line 2 Width
     default: 1
@@ -231,42 +250,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 2
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 2 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color2
     label: Line 2 Color
-    dtype: string
-    default: 'green'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'red'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 2
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 2 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style2
     label: Line 2 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 2
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 2 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker2
     label: Line 2 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 2
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 2 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha2
     label: Line 2 Alpha
     dtype: real
@@ -275,9 +308,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 2
             or (type == "complex" and int(nconnections) >= 1)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 1 <= 1) 
+            or (type == "msg_float" and 2 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label3
     label: Line 3 Label
@@ -287,9 +322,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 3
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 3 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width3
     label: Line 3 Width
     default: 1
@@ -297,42 +334,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 3
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 3 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color3
     label: Line 3 Color
-    dtype: string
-    default: 'black'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'green'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 3
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 3 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style3
     label: Line 3 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 3
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 3 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker3
     label: Line 3 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 3
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 3 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha3
     label: Line 3 Alpha
     dtype: real
@@ -341,9 +392,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 3
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 3 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label4
     label: Line 4 Label
@@ -353,9 +406,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 4
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 4 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width4
     label: Line 4 Width
     default: 1
@@ -363,42 +418,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 4
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 4 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color4
     label: Line 4 Color
-    dtype: string
-    default: 'cyan'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'black'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 4
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 4 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style4
     label: Line 4 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 4
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 4 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker4
     label: Line 4 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 4
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 4 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha4
     label: Line 4 Alpha
     dtype: real
@@ -407,9 +476,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 4
             or (type == "complex" and int(nconnections) >= 2)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 2 <= 1) 
+            or (type == "msg_float" and 4 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label5
     label: Line 5 Label
@@ -419,9 +490,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 5
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 5 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width5
     label: Line 5 Width
     default: 1
@@ -429,42 +502,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 5
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 5 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color5
     label: Line 5 Color
-    dtype: string
-    default: 'magenta'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'cyan'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 5
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 5 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style5
     label: Line 5 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 5
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 5 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker5
     label: Line 5 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 5
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 5 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha5
     label: Line 5 Alpha
     dtype: real
@@ -473,9 +560,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 5
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 5 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label6
     label: Line 6 Label
@@ -485,9 +574,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 6
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 6 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width6
     label: Line 6 Width
     default: 1
@@ -495,42 +586,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 6
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 6 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color6
     label: Line 6 Color
-    dtype: string
-    default: 'yellow'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'magenta'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 6
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 6 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style6
     label: Line 6 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 6
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 6 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker6
     label: Line 6 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 6
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 6 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha6
     label: Line 6 Alpha
     dtype: real
@@ -539,9 +644,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 6
             or (type == "complex" and int(nconnections) >= 3)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 3 <= 1) 
+            or (type == "msg_float" and 6 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label7
     label: Line 7 Label
@@ -551,9 +658,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 7
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 7 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width7
     label: Line 7 Width
     default: 1
@@ -561,42 +670,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 7
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 7 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color7
     label: Line 7 Color
-    dtype: string
-    default: 'dark red'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'yellow'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 7
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 7 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style7
     label: Line 7 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 7
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 7 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker7
     label: Line 7 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 7
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 7 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha7
     label: Line 7 Alpha
     dtype: real
@@ -605,9 +728,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 7
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 7 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label8
     label: Line 8 Label
@@ -617,9 +742,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 8
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 8 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width8
     label: Line 8 Width
     default: 1
@@ -627,42 +754,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 8
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 8 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color8
     label: Line 8 Color
-    dtype: string
-    default: 'dark green'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'dark red'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 8
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 8 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style8
     label: Line 8 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 8
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 8 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker8
     label: Line 8 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 8
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 8 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha8
     label: Line 8 Alpha
     dtype: real
@@ -671,9 +812,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 8
             or (type == "complex" and int(nconnections) >= 4)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 4 <= 1) 
+            or (type == "msg_float" and 8 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label9
     label: Line 9 Label
@@ -683,9 +826,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 9
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 9 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width9
     label: Line 9 Width
     default: 1
@@ -693,42 +838,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 9
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 9 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color9
     label: Line 9 Color
-    dtype: string
-    default: 'Dark Blue'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'dark green'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 9
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 9 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style9
     label: Line 9 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 9
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 9 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker9
     label: Line 9 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 9
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 9 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha9
     label: Line 9 Alpha
     dtype: real
@@ -737,9 +896,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 9
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 9 <= 1))
         else 'all')
         }
+    category: Config
 
 -   id: label10
     label: Line 10 Label
@@ -749,9 +910,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 10
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 10 <= 1))
         else 'all')
         }
+    category: Config
 -   id: width10
     label: Line 10 Width
     default: 1
@@ -759,42 +922,56 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 10
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 10 <= 1))
         else 'all')
         }
+    category: Config
 -   id: color10
     label: Line 10 Color
-    dtype: string
-    default: 'blue'
+    dtype: enum
+    options: ['blue', 'red', 'green', 'black', 'cyan', 'magenta', 'yellow', 'dark red', 'dark green', 'dark blue']
+    option_labels: ['Blue', 'Red', 'Green', 'Black', 'Cyan', 'Magenta', 'Yellow', 'Dark Red', 'Dark Green', 'Dark Blue']
+    default: 'dark blue'
     base_key: color1
     hide: ${ ('part' if (
             int(nconnections) >= 10
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 10 <= 1))
         else 'all')
         }
+    category: Config
 -   id: style10
     label: Line 10 Style
-    dtype: int
+    dtype: enum
+    options: ['1','2','3','4','5','0']
+    option_labels: ['Solid','Dash','Dots','Dash-Dot','Dash-Dot-Dot']
     default: 1
     base_key: style1
     hide: ${ ('part' if (
             int(nconnections) >= 10
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 10 <= 1))
         else 'all')
         }
+    category: Config
 -   id: marker10
     label: Line 10 Marker
-    dtype: int
-    default: 1
+    dtype: enum
+    options: ['-1','0','1','2','3','4','5','6','7','8','9']
+    option_labels: ['None','Circle','Rectangle','Diamond','Triangle','Down Triangle','Left Triangle','Right Triangle','Cross','X-Cross']
+    default: -1
     base_key: marker1
     hide: ${ ('part' if (
             int(nconnections) >= 10
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 10 <= 1))
         else 'all')
         }
+    category: Config
 -   id: alpha10
     label: Line 10 Alpha
     dtype: real
@@ -803,9 +980,11 @@ parameters:
     hide: ${ ('part' if (
             int(nconnections) >= 10
             or (type == "complex" and int(nconnections) >= 5)
-            or (type == "msg_complex")) and (not type == "msg_float")
+            or (type == "msg_complex" and 5 <= 1) 
+            or (type == "msg_float" and 10 <= 1))
         else 'all')
         }
+    category: Config
 
 asserts:
 - ${nconnections <= (5 if type == 'complex' else 10)}
@@ -860,8 +1039,8 @@ templates:
             ${label6}, ${label7}, ${label8}, ${label9}, ${label10}]
         widths = [${width1}, ${width2}, ${width3}, ${width4}, ${width5},
             ${width6}, ${width7}, ${width8}, ${width9}, ${width10}]
-        colors = [${color1}, ${color2}, ${color3}, ${color4}, ${color5},
-            ${color6}, ${color7}, ${color8}, ${color9}, ${color10}]
+        colors = ['${color1}', '${color2}', '${color3}', '${color4}', '${color5}',
+            '${color6}', '${color7}', '${color8}', '${color9}', '${color10}']
         alphas = [${alpha1}, ${alpha2}, ${alpha3}, ${alpha4}, ${alpha5},
             ${alpha6}, ${alpha7}, ${alpha8}, ${alpha9}, ${alpha10}]
         styles = [${style1}, ${style2}, ${style3}, ${style4}, ${style5},

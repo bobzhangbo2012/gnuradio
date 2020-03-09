@@ -4,20 +4,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 #
 
 from __future__ import unicode_literals
@@ -39,12 +27,17 @@ class ThriftRadioClient(object):
 
         self.radio = ControlPort.Client(self.protocol)
         self.transport.open()
+        self.host = host
+        self.port = port
 
     def __del__(self):
-        self.radio.shutdown()
-        self.transport.close()
+        try:
+            self.transport.close()
+            self.radio.shutdown()
+        except:
+            pass
 
-    def getRadio(self, host, port):
+    def getRadio(self):
         return self.radio
 
 """
@@ -72,7 +65,7 @@ class RPCConnectionThrift(RPCConnection.RPCConnection):
         # config file, if one is set. Defaults to 9090 otherwise.
         if port is None:
             p = gr.prefs()
-            thrift_config_file = p.get_string("ControlPort", "config", "");
+            thrift_config_file = p.get_string("ControlPort", "config", "")
             if(len(thrift_config_file) > 0):
                 p.add_config_file(thrift_config_file)
                 port = p.get_long("thrift", "port", 9090)
@@ -120,6 +113,11 @@ class RPCConnectionThrift(RPCConnection.RPCConnection):
             self.BaseTypes.C32VECTOR: lambda k: ttypes.Knob(type=k.ktype, value=ttypes.KnobBase(a_c32vector = k.value)),
         }
 
+    def __str__(self):
+        return "Apache Thrift connection to {0}:{1}".format(
+            self.thriftclient.host,
+            self.thriftclient.port)
+
     def unpackKnob(self, key, knob):
         f = self.unpack_dict.get(knob.type, None)
         if(f):
@@ -137,11 +135,7 @@ class RPCConnectionThrift(RPCConnection.RPCConnection):
             raise exceptions.ValueError
 
     def newConnection(self, host=None, port=None):
-        try:
-            self.thriftclient = ThriftRadioClient(self.getHost(), self.getPort())
-        except TTransport.TTransportException:
-            sys.stderr.write("Could not connect to ControlPort endpoint at {0}:{1}.\n\n".format(host, port))
-            sys.exit(1)
+        self.thriftclient = ThriftRadioClient(host, int(port))
 
     def properties(self, *args):
         knobprops = self.thriftclient.radio.properties(*args)
@@ -212,8 +206,7 @@ class RPCConnectionThrift(RPCConnection.RPCConnection):
         '''
         self.thriftclient.radio.postMessage(pmt.serialize_str(pmt.intern(blk_alias)),
                                             pmt.serialize_str(pmt.intern(port)),
-                                            pmt.serialize_str(msg));
-
+                                            pmt.serialize_str(msg))
     def printProperties(self, props):
         info = ""
         info += "Item:\t\t{0}\n".format(props.description)

@@ -12,15 +12,15 @@ if (LOG4CPP_INCLUDE_DIR)
 endif ()
 
 find_path(LOG4CPP_INCLUDE_DIR log4cpp/Category.hh
-  /opt/local/include
-  /usr/local/include
   /usr/include
+  /usr/local/include
+  /opt/local/include
 )
 
 set(LOG4CPP_NAMES log4cpp)
 find_library(LOG4CPP_LIBRARY
   NAMES ${LOG4CPP_NAMES}
-  PATHS /usr/lib /usr/local/lib /opt/local/lib
+  PATHS /usr/lib /usr/lib64 /usr/local/lib  /usr/local/lib64 /opt/local/lib /opt/local/lib64
 )
 
 
@@ -42,13 +42,13 @@ if (LOG4CPP_FOUND)
   endif ()
 else ()
   if (LOG4CPP_FIND_REQUIRED)
-    message(STATUS "Looked for LOG4CPP libraries named ${LOG4CPPS_NAMES}.")
+    message(STATUS "Looked for LOG4CPP libraries named ${LOG4CPP_NAMES}.")
     message(FATAL_ERROR "Could NOT find LOG4CPP library")
   endif ()
 endif ()
 
 
-if (LOG4CPP_FOUND AND NOT TARGET log4cpp::log4cpp)
+if (LOG4CPP_FOUND AND NOT TARGET Log4Cpp::log4cpp)
   add_library(Log4Cpp::log4cpp INTERFACE IMPORTED)
   set_target_properties(Log4Cpp::log4cpp PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${LOG4CPP_INCLUDE_DIRS}"

@@ -2,19 +2,8 @@
 Copyright 2007-2011, 2016q Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import
@@ -280,6 +269,13 @@ class FlowGraph(CoreFlowgraph, Drawable):
             block_key = block_n.get('id')
             if block_key == 'options':
                 continue
+
+            block_name = block_n.get('name')
+            # Verify whether a block with this name exists before adding it
+            if block_name in (blk.name for blk in self.blocks):
+                block_name = self._get_unique_id(block_name)
+                block_n['name'] = block_name
+
             block = self.new_block(block_key)
             if not block:
                 continue  # unknown block was pasted (e.g. dummy block)
@@ -290,8 +286,7 @@ class FlowGraph(CoreFlowgraph, Drawable):
             # move block to offset coordinate
             block.move((x_off, y_off))
 
-            if block.params['id'].value in (blk.name for blk in self.blocks):
-                block.params['id'].value = self._get_unique_id(block_key)
+            #TODO: prevent block from being pasted directly on top of another block
 
         # update before creating connections
         self.update()
@@ -419,7 +414,7 @@ class FlowGraph(CoreFlowgraph, Drawable):
             x, y = selected_block.coordinate
             min_x, min_y = min(min_x, x), min(min_y, y)
             max_x, max_y = max(max_x, x), max(max_y, y)
-        #calculate center point of slected blocks
+        #calculate center point of selected blocks
         ctr_x, ctr_y = (max_x + min_x)/2, (max_y + min_y)/2
         #rotate the blocks around the center point
         for selected_block in self.selected_blocks():
@@ -487,7 +482,13 @@ class FlowGraph(CoreFlowgraph, Drawable):
             element.create_labels(cr)
 
     def create_shapes(self):
-        for element in self._elements_to_draw:
+        #TODO - this is a workaround for bus ports not having a proper coordinate
+        # until the shape is drawn.  The workaround is to draw blocks before connections
+
+        for element in filter(lambda x: x.is_block, self._elements_to_draw) :
+            element.create_shapes()
+
+        for element in filter(lambda x: not x.is_block, self._elements_to_draw):
             element.create_shapes()
 
     def _drawables(self):
@@ -743,8 +744,6 @@ class FlowGraph(CoreFlowgraph, Drawable):
 
     def _handle_mouse_motion_move(self, coordinate):
         # only continue if mouse-over stuff is enabled (just the auto-hide port label stuff for now)
-        if not Actions.TOGGLE_AUTO_HIDE_PORT_LABELS.get_active():
-            return
         redraw = False
         for element in self._elements_to_draw:
             over_element = element.what_is_selected(coordinate)
@@ -760,6 +759,8 @@ class FlowGraph(CoreFlowgraph, Drawable):
             if self.element_under_mouse:
                 redraw |= self.element_under_mouse.mouse_out() or False
                 self.element_under_mouse = None
+        if not Actions.TOGGLE_AUTO_HIDE_PORT_LABELS.get_active():
+            return
         if redraw:
             # self.create_labels()
             self.create_shapes()
@@ -792,9 +793,15 @@ class FlowGraph(CoreFlowgraph, Drawable):
         return redraw
 
     def get_extents(self):
-        extent = 100000, 100000, 0, 0
-        for element in self._elements_to_draw:
-            extent = (min_or_max(xy, e_xy) for min_or_max, xy, e_xy in zip(
-                (min, min, max, max), extent, element.get_extents()
-            ))
+        show_comments = Actions.TOGGLE_SHOW_BLOCK_COMMENTS.get_active()
+        def sub_extents():
+            for element in self._elements_to_draw:
+                yield element.get_extents()
+                if element.is_block and show_comments and element.enabled:
+                    yield element.get_extents_comment()
+
+        extent = 10000000, 10000000, 0, 0
+        cmps = (min, min, max, max)
+        for sub_extent in sub_extents():
+            extent = [cmp(xy, e_xy) for cmp, xy, e_xy in zip(cmps, extent, sub_extent)]
         return tuple(extent)

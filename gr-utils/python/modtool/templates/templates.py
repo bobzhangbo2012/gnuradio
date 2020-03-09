@@ -3,20 +3,8 @@
 #
 # This file is part of GNU Radio
 #
-# GNU Radio is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3, or (at your option)
-# any later version.
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
-# GNU Radio is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Radio; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street,
-# Boston, MA 02110-1301, USA.
 #
 ''' All the templates for skeleton files (needed by ModToolAdd) '''
 
@@ -32,20 +20,7 @@ Templates = {}
 Templates['defaultlicense'] = '''
 Copyright %d {copyrightholder}.
 
-This is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
-
-This software is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this software; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street,
-Boston, MA 02110-1301, USA.
+SPDX-License-Identifier: GPL-3.0-or-later
 ''' % datetime.now().year
 
 Templates['grlicense'] = '''
@@ -53,20 +28,7 @@ Copyright {0} Free Software Foundation, Inc.
 
 This file is part of GNU Radio
 
-GNU Radio is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3, or (at your option)
-any later version.
-
-GNU Radio is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with GNU Radio; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 51 Franklin Street,
-Boston, MA 02110-1301, USA.
+SPDX-License-Identifier: GPL-3.0-or-later
 '''.format(datetime.now().year)
 
 # Header file of a sync/decimator/interpolator block
@@ -396,8 +358,8 @@ class ${blockname}(${parenttype}):
         ${parenttype}.__init__(self,
 % if blocktype == 'hier':
             "${blockname}",
-            "gr.io_signature(${inputsig})",  # Input signature
-            "gr.io_signature(${outputsig})") # Output signature
+            gr.io_signature(${inputsig}),  # Input signature
+            gr.io_signature(${outputsig})) # Output signature
 
             # Define blocks and connect them
             self.connect()
@@ -453,11 +415,16 @@ ${str_to_fancyc_comment(license)}
 #include <gnuradio/attributes.h>
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_CASE(test_${blockname}_t1)
-{
-    // Put test here
-}
+namespace gr {
+  namespace ${modname} {
 
+    BOOST_AUTO_TEST_CASE(test_${blockname}_t1)
+    {
+      // Put test here
+    }
+
+  } /* namespace ${modname} */
+} /* namespace gr */
 '''
 
 # C++ file for QA
@@ -550,11 +517,11 @@ templates:
   imports: import ${modname}
   make: ${modname}.${blockname}(${strip_arg_types_grc(arglist)})
 
-<!-- Make one 'parameters' list entry for every Parameter you want settable from the GUI.
-     Sub-entries of dictionary:
-     * id (makes the value accessible as \$keyname, e.g. in the make entry)
-     * label
-     * dtype -->
+#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
+#     Keys include:
+#     * id (makes the value accessible as keyname, e.g. in the make entry)
+#     * label (label shown in the GUI)
+#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
 parameters:
 - id: ...
   label: ...
@@ -563,27 +530,29 @@ parameters:
   label: ...
   dtype: ...
 
-<!-- Make one 'inputs' list entry per input. Sub-entries of dictionary:
-     * label (an identifier for the GUI)
-     * domain
-     * dtype
-     * vlen
-     * optional (set to 1 for optional inputs) -->
+#  Make one 'inputs' list entry per input and one 'outputs' list entry per output.
+#  Keys include:
+#      * label (an identifier for the GUI)
+#      * domain (optional - stream or message. Default is stream)
+#      * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+#      * vlen (optional - data stream vector length. Default is 1)
+#      * optional (optional - set to 1 for optional inputs. Default is 0)
 inputs:
 - label: ...
   domain: ...
   dtype: ...
   vlen: ...
+  optional: ...
 
-<!-- Make one 'outputs' list entry per output. Sub-entries of dictionary:
-     * label (an identifier for the GUI)
-     * dtype
-     * vlen
-     * optional (set to 1 for optional inputs) -->
+outputs:
 - label: ...
   domain: ...
-  dtype: !-- e.g. int, float, complex, byte, short, xxx_vector, ...--
+  dtype: ...
+  vlen: ...
+  optional: ...
 
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
 file_format: 1
 '''
 

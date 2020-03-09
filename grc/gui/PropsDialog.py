@@ -2,19 +2,8 @@
 Copyright 2007, 2008, 2009 Free Software Foundation, Inc.
 This file is part of GNU Radio
 
-GNU Radio Companion is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+SPDX-License-Identifier: GPL-2.0-or-later
 
-GNU Radio Companion is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 """
 
 from __future__ import absolute_import
@@ -57,6 +46,7 @@ class PropsDialog(Gtk.Dialog):
 
         self._block = block
         self._hash = 0
+        self._config = parent.config
 
         vpaned = Gtk.VPaned()
         self.vbox.pack_start(vpaned, True, True, 0)
@@ -179,7 +169,11 @@ class PropsDialog(Gtk.Dialog):
                     # child.destroy()   # disabled because it throws errors...
                 # repopulate the params box
                 box_all_valid = True
+                force_show_id = Actions.TOGGLE_SHOW_BLOCK_IDS.get_active()
+
                 for param in self._block.params.values():
+                    if force_show_id and param.dtype == 'id':
+                        param.hide = 'none'
                     # todo: why do we even rebuild instead of really hiding params?
                     if param.category != category or param.hide == 'all':
                         continue
@@ -210,6 +204,13 @@ class PropsDialog(Gtk.Dialog):
         buf = self._docs_text_display.get_buffer()
         buf.delete(buf.get_start_iter(), buf.get_end_iter())
         pos = buf.get_end_iter()
+
+        # Add link to wiki page for this block, at the top, as long as it's not an OOT block
+        if self._block.category and self._block.category[0] == "Core":
+            note = "Wiki Page for this Block: "
+            prefix = self._config.wiki_block_docs_url_prefix
+            suffix = self._block.label.replace(" ", "_")
+            buf.insert(pos, note + prefix + suffix + '\n\n')
 
         docstrings = self._block.documentation.copy()
         if not docstrings:

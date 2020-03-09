@@ -4,20 +4,8 @@
  *
  * This file is part of GNU Radio
  *
- * GNU Radio is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * GNU Radio is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with GNU Radio; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
  */
 
 /* -----------------------------------------------------------------
@@ -36,33 +24,33 @@
 #ifndef AWGN_BP_H
 #define AWGN_BP_H
 
-#include <vector>
+#include "alist.h"
+#include "gf2mat.h"
+#include <gnuradio/fec/api.h>
 #include <cmath>
 #include <iostream>
-#include "gf2mat.h"
-#include "alist.h"
-#include <gnuradio/fec/api.h>
+#include <vector>
 
 class FEC_API awgn_bp
 {
-  public:
+public:
     //! Default constructor
-    awgn_bp () {};
+    awgn_bp(){};
 
     //! A constructor for given GF2Mat and sigma
-    awgn_bp (const GF2Mat  X, float sgma);
+    awgn_bp(const GF2Mat X, float sgma);
 
     //! A constructor for given alist and sigma
-    awgn_bp (alist  _list, float sgma);
+    awgn_bp(alist _list, float sgma);
 
     //! Initializes the class using given alist and sigma
-    void set_alist_sigma(alist  _list, float sgma);
+    void set_alist_sigma(alist _list, float sgma);
 
     //! Returns the variable Q
-    std::vector< std::vector<double> > get_Q();
+    std::vector<std::vector<double>> get_Q();
 
     //! Returns the variable R
-    std::vector< std::vector<double> > get_R();
+    std::vector<std::vector<double>> get_R();
 
     //! Returns the variable H
     GF2Mat get_H();
@@ -124,10 +112,10 @@ class FEC_API awgn_bp
      * \param rx_word The received samples for decoding.
      * \param niterations The number of message passing iterations
      *        done to decode this codeword.
-    */
-    std::vector<char> decode (std::vector<float> rx_word,
-                              int *niterations);
-  private:
+     */
+    std::vector<char> decode(std::vector<float> rx_word, int* niterations);
+
+private:
     //! The number of check nodes in the tanner-graph
     int M;
 
@@ -147,10 +135,10 @@ class FEC_API awgn_bp
     float sigma;
 
     //! Matrix holding messages from check nodes to variable nodes
-    std::vector< std::vector<double> > R;
+    std::vector<std::vector<double>> R;
 
     //! Matrix holding messages from variable nodes to check nodes
-    std::vector< std::vector<double> > Q;
+    std::vector<std::vector<double>> Q;
 
     //! The array of likelihood computed from the channel output
     std::vector<double> rx_lr;
@@ -159,16 +147,16 @@ class FEC_API awgn_bp
     std::vector<double> lr;
 
     //! List of integer coordinates along each column with non-zero entries
-    std::vector < std::vector<int> > nlist;
+    std::vector<std::vector<int>> nlist;
 
     //! List of integer coordinates along each row with non-zero entries
-    std::vector < std::vector<int> > mlist;
+    std::vector<std::vector<int>> mlist;
 
     //! Weight of each column n
-    std::vector <int> num_nlist;
+    std::vector<int> num_nlist;
 
     //! Weight of each row m
-    std::vector <int> num_mlist;
+    std::vector<int> num_mlist;
 
     //! The array for holding estimate computed on BP decoding
     std::vector<char> estimate;
